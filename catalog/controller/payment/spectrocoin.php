@@ -167,17 +167,12 @@ class ControllerPaymentSpectrocoin extends Controller {
 
     private function unitConversion($amount, $currencyFrom, $currencyTo)
     {
-        $currencyFrom = strtoupper($currencyFrom);
-        $currencyTo = strtoupper($currencyTo);
-        $url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20%28%22{$currencyTo}{$currencyFrom}%22%20%29&env=store://datatables.org/alltableswithkeys&format=json";
-        $content = file_get_contents($url);
-        if ($content) {
-            $obj = json_decode($content);
-            if (!isset($obj->error) && isset($obj->query->results->rate->Rate)) {
-                $rate = $obj->query->results->rate->Rate;
-                return ($amount * 1.0) / $rate;
-            }
-        }
-        Mage::throwException(Mage::helper('payment')->__('Spectrocoin currency conversion failed. Please select different payment'));
+		$amount = urlencode($amount);
+		$currencyFrom = urlencode($currencyFrom);
+		$currencyTo = urlencode($currencyTo);
+		$get = file_get_contents("https://www.google.com/finance/converter?a=$amount&from=$currencyFrom&to=$currencyTo");
+		$get = explode("<span class=bld>",$get);
+		$get = explode("</span>",$get[1]);  
+		return round(preg_replace("/[^0-9\.]/", null, $get[0]), 2);
     }
 }

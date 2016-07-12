@@ -1,8 +1,8 @@
 <?php
 require_once DIR_SYSTEM . 'library/spectrocoin/SCMerchantClient.php';
-const merchantApiUrl = 'https://spectrocoin.com/api/merchant/1';
 class ControllerPaymentSpectrocoin extends Controller
 {
+	const merchantApiUrl = 'https://spectrocoin.com/api/merchant/1';
     var $time = 600;
 
     public function index()
@@ -55,7 +55,7 @@ class ControllerPaymentSpectrocoin extends Controller
         $callbackUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/callback';
         $successUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/accept';
         $cancelUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(merchantApiUrl, $merchantId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
         $response = $client->createOrder($orderRequest);
@@ -115,7 +115,7 @@ class ControllerPaymentSpectrocoin extends Controller
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(merchantApiUrl, $merchantId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
         $client->setPrivateKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
         if ($client->validateCreateOrderCallback($callback)) {

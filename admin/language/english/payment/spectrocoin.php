@@ -15,7 +15,6 @@ $_['text_spectrocoin']   = '<a target="_blank" href="http://www.spectrocoin.com"
 $_['entry_title'] = 'Title:';
 $_['entry_project']      = 'Project ID:';
 $_['entry_merchant']     = 'Merchant ID:';
-$_['entry_receive_currency'] = 'Receive currency';
 $_['entry_display_payments'] = 'Enabled';
 $_['entry_private_key']  = 'Private key:';
 $_['text_edit']          = 'Edit Spectrocoin';

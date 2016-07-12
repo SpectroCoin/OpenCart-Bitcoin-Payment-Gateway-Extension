@@ -9,11 +9,6 @@ class ControllerPaymentSpectrocoin extends Controller
         'text_spectrocoin', 'entry_private_key_tooltip'
     );
 
-    private $receiveCurrency = array(
-        'EUR' => 'EUR',
-        'BTC' => 'BTC',
-    );
-
     public function index() {
         $this->load->model('localisation/order_status');
         $this->language->load('payment/spectrocoin');

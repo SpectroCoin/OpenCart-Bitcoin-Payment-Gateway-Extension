@@ -55,20 +55,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-sm-2 control-label" for="entry_merchant"><?php echo $entry_receive_currency; ?></label>
-                        <div class="col-sm-10">
-                            <select name="spectrocoin_receive_currency" class="form-control">
-                                <?php
-                                foreach ($receive_currency as $key=>$value) {
-                                    $selected = ($key == $spectrocoin_receive_currency)? 'selected' : '';
-                                    echo "<option value='$key' $selected>$value</option>";
-                                }
-                                ?>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
                         <label class="col-sm-2 control-label" for="entry_private_key">
                             <span data-toggle="tooltip" title="" data-original-title="<?php echo $entry_private_key_tooltip ?>"><?php echo $entry_private_key; ?></span>
                         </label>

@@ -2,7 +2,7 @@
 
 /**
  * Created by UAB Spectro Fincance.
- * This is a sample SpectroCoin Merchant v1.0 API PHP client
+ * This is a sample SpectroCoin Merchant v1.1 API PHP client
  */
 
 include_once('httpful.phar');
@@ -17,49 +17,50 @@ include_once('messages/CreateOrderResponse.php');
 class SCMerchantClient
 {
 
-    const merchantApiUrlStart = 'https://spectrocoin.com/api/merchant/1';
-
 	private $merchantApiUrl;
 	private $privateMerchantCertLocation;
-	private $publicMerchantCertLocation;
-
 	private $publicSpectroCoinCertLocation;
-    private $privateKey;
 
 	private $merchantId;
 	private $apiId;
 	private $debug;
 
+	private $privateMerchantKey;
 	/**
-     * @param $privateCertLocation
-	 * @param $publicCerLocation
+	 * @param $merchantApiUrl
 	 * @param $merchantId
 	 * @param $apiId
 	 * @param bool $debug
 	 */
-	function __construct($privateCertLocation, $publicCerLocation, $merchantId, $apiId, $debug = false)
+	function __construct($merchantApiUrl, $merchantId, $apiId, $debug = false)
 	{
-		$this->privateMerchantCertLocation = $privateCertLocation;
-		$this->publicMerchantCertLocation = $publicCerLocation;
+		$this->privateMerchantCertLocation = dirname(__FILE__) . '/../cert/mprivate.pem';
 		$this->publicSpectroCoinCertLocation = 'https://spectrocoin.com/files/merchant.public.pem';
-		$this->merchantApiUrl = self::merchantApiUrlStart;
+		$this->merchantApiUrl = $merchantApiUrl;
 		$this->merchantId = $merchantId;
 		$this->apiId = $apiId;
 		$this->debug = $debug;
 	}
 
 	/**
+	 * @param $privateKey
+	 */
+	public function setPrivateMerchantKey($privateKey) {
+		$this->privateMerchantKey = $privateKey;
+	}
+	/**
 	 * @param CreateOrderRequest $request
 	 * @return ApiError|CreateOrderResponse
 	 */
-    public function createOrder(CreateOrderRequest $request)
+	public function createOrder(CreateOrderRequest $request)
 	{
 		$payload = array(
 			'merchantId' => $this->merchantId,
 			'apiId' => $this->apiId,
-            'orderId' => $request->getOrderId(),
+			'orderId' => $request->getOrderId(),
 			'payCurrency' => $request->getPayCurrency(),
 			'payAmount' => $request->getPayAmount(),
+			'receiveCurrency' => $request->getReceiveCurrency(),
 			'receiveAmount' => $request->getReceiveAmount(),
 			'description' => $request->getDescription(),
 			'culture' => $request->getCulture(),
@@ -92,17 +93,9 @@ class SCMerchantClient
 
 	private function generateSignature($data)
 	{
-        if (isset($this->privateKey) && $this->privateKey) {
-            $privateKey = $this->privateKey;
-        } else {
-            $privateKey = file_get_contents($this->privateMerchantCertLocation);
-        }
-
+		$privateKey = $this->privateMerchantKey != null ? $this->privateMerchantKey : file_get_contents($this->privateMerchantCertLocation);
 		$pkeyid = openssl_pkey_get_private($privateKey);
 
-        if (!$pkeyid) {
-            throw new Exception("Incorrect private key!");
-        }
 		// compute signature
 		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
 		$encodedSignature = base64_encode($signature);
@@ -181,19 +174,4 @@ class SCMerchantClient
 		return $r;
 	}
 
-    /**
-     * @return mixed
-     */
-    public function getPrivateKey()
-    {
-        return $this->privateKey;
-    }
-
-    /**
-     * @param mixed $privateKey
-     */
-    public function setPrivateKey($privateKey)
-    {
-        $this->privateKey = $privateKey;
-    }
 }

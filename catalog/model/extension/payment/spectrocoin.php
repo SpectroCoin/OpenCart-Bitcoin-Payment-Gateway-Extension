@@ -1,8 +1,8 @@
 <?php
 
-class ModelPaymentSpectrocoin extends Model {
+class ModelExtensionPaymentSpectrocoin extends Model {
     public function getMethod($address) {
-        $this->load->language('payment/spectrocoin');
+        $this->load->language('extension/payment/spectrocoin');
 
         if ($this->config->get('spectrocoin_status')) {
             $status = true;

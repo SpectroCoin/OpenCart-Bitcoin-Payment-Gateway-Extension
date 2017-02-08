@@ -1,5 +1,5 @@
 <?php
-class ControllerPaymentSpectrocoin extends Controller
+class ControllerExtensionPaymentSpectrocoin extends Controller
 {
     private $error = array();
     private $langs = array('heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_all_zones', 'text_none',
@@ -23,7 +23,7 @@ class ControllerPaymentSpectrocoin extends Controller
                 }
                 $this->model_setting_setting->editSetting('spectrocoin', $this->request->post);
                 $this->session->data['success'] = $this->language->get('text_success');
-                $this->response->redirect($this->url->link('extension/payment', 'token=' . $this->session->data['token'], 'SSL'));
+				$this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true));
             }
         }
         $data = array();
@@ -38,7 +38,7 @@ class ControllerPaymentSpectrocoin extends Controller
 
         $this->loadBreadcrumbs($data);
 
-        $data['action'] = $this->url->link('payment/spectrocoin', 'token=' . $this->session->data['token'], 'SSL');
+        $data['action'] = $this->url->link('extension/payment/spectrocoin', 'token=' . $this->session->data['token'], 'SSL');
 
         $data['cancel'] = HTTPS_SERVER . 'index.php?route=extension/payment&token=' . $this->session->data['token'];
 
@@ -55,7 +55,7 @@ class ControllerPaymentSpectrocoin extends Controller
 
         $data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
-        $this->template = 'payment/spectrocoin.tpl';
+        $this->template = 'extension/payment/spectrocoin.tpl';
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -97,7 +97,7 @@ class ControllerPaymentSpectrocoin extends Controller
     }
 
     private function validate() {
-        if (!$this->user->hasPermission('modify', 'payment/spectrocoin')) {
+        if (!$this->user->hasPermission('modify', 'extension/payment/spectrocoin')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }
 

@@ -1,30 +1,26 @@
 <?php
 require_once DIR_SYSTEM . 'library/spectrocoin/SCMerchantClient.php';
-class ControllerPaymentSpectrocoin extends Controller
+class ControllerExtensionPaymentSpectrocoin extends Controller
 {
 	const merchantApiUrl = 'https://spectrocoin.com/api/merchant/1';
     var $time = 600;
-
     public function index()
     {
-        $data['action'] = $this->url->link('payment/spectrocoin/confirm', '', 'SSL');
+        $data['action'] = $this->url->link('extension/payment/spectrocoin/confirm', '', 'SSL');
         $data['button_confirm'] = $this->language->get('button_confirm');
         $data['button_back'] = $this->language->get('button_back');
-
-        $this->language->load('payment/spectrocoin');
-
+        $this->language->load('extension/payment/spectrocoin');
         if ($this->request->get['route'] != 'checkout/guest/confirm') {
             $data['back'] = HTTPS_SERVER . 'index.php?route=checkout/payment';
         } else {
             $data['back'] = HTTPS_SERVER . 'index.php?route=checkout/guest';
         }
-
         $this->load->model('checkout/order');
-        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/spectrocoin.tpl')) {
-            return $this->load->view($this->config->get('config_template') . '/template/payment/spectrocoin.tpl', $data);
+        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/payment/spectrocoin.tpl')) {
+            return $this->load->view($this->config->get('config_template') . '/template/extension/payment/spectrocoin.tpl', $data);
         } else
         {
-            return $this->load->view('payment/spectrocoin.tpl', $data);
+            return $this->load->view('extension/payment/spectrocoin.tpl', $data);
         }
     }
     public function confirm()
@@ -52,9 +48,9 @@ class ControllerPaymentSpectrocoin extends Controller
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $orderId = $order['order_id'];
         $orderDescription = "Order #{$orderId}";
-        $callbackUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/callback';
-        $successUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/accept';
-        $cancelUrl = HTTPS_SERVER . 'index.php?route=payment/spectrocoin/cancel';
+        $callbackUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/callback';
+        $successUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/accept';
+        $cancelUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
         $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
@@ -68,9 +64,7 @@ class ControllerPaymentSpectrocoin extends Controller
                 $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $orderId . '\'');
                 header('Location: ' . $redirectUrl);
             }
-
         }
-
         public function accept()
     {
         if (isset($this->session->data['token'])) {
@@ -79,7 +73,6 @@ class ControllerPaymentSpectrocoin extends Controller
             $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success');
         }
     }
-
     public function cancel()
     {
         $this->load->model('checkout/order');
@@ -101,12 +94,10 @@ class ControllerPaymentSpectrocoin extends Controller
         $data['heading_title'] = $this->language->get('heading_title');
         $data['text_failure'] = $this->language->get('text_failure');
         $data['text_failure_wait'] = $this->language->get('text_failure_wait');
-        $template = 'payment/spectrocoin_failure.tpl';
+        $template = 'extension/payment/spectrocoin_failure.tpl';
         $this->response->setOutput($this->load->view($template, $data));
     }
-
     public function callback() {
-
         $privateKey = $this->config->get('spectrocoin_private_key');
         $receiveCurrency = $this->config->get('spectrocoin_receive_currency');
         $merchantId = $this->config->get('spectrocoin_merchant');

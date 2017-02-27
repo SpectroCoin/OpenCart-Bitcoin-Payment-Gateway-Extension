@@ -35,7 +35,7 @@ To succesfully use this plugin, you have to have a SpectroCoin Bitcoin wallet. Y
 **CONFIGURATION**
 
 3. Go to Admin -> Extensions -> Payments and enable SpectroCoin module
-4. Enter your Merchant Id, Application Id, Private key.
+4. Enter your Merchant Id, Project Id, Private key.
 
 **INFORMATION**
 

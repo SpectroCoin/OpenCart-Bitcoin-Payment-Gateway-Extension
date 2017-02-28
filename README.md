@@ -8,13 +8,13 @@ To succesfully use this plugin, you have to have a SpectroCoin Bitcoin wallet. Y
 **INSTALLATION**
 
 1. Upload content to your OpenCart directory.
-2. Generate private and public keys
-	1. Automatically<br />
+2. Generate private and public keys<br />
+	i. Automatically<br />
 	
 	Go to [SpectroCoin](https://spectrocoin.com/) -> [Project list](https://spectrocoin.com/en/merchant/api/list.html)
 	click on your project, then select "Edit Project and then click "Generate" (next to Public key field), as a result you will get an automatically generated private key, download and save it. The matching Public key will be generated automatically and added to your project.
 	
-	2. Manually<br />
+	ii. Manually<br />
     	
 	Private key:
     ```shell

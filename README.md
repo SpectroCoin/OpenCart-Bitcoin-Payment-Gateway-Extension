@@ -1,7 +1,7 @@
 SpectroCoin OpenCart Bitcoin Payment Extension
 ---------------
 
-This is [SpectroCoin](https://spectrocoin.com/) Bitcoin Payment Module for OpenCart. This extenstion allows to easily accept bitcoins (and other cryptocurrencies such as DASH) at your OpenCart website. You can view [a tutorial how to integrate bitcoin payments for OpenCart](https://www.youtube.com/watch?v=pMKTjTI_UGk).
+This is [SpectroCoi Bitcoin Payment Module for OpenCart](https://spectrocoin.com/en/plugins/accept-bitcoin-opencart.html). This extenstion allows to easily accept bitcoins (and other cryptocurrencies such as DASH) at your OpenCart website. You can view [a tutorial how to integrate bitcoin payments for OpenCart](https://www.youtube.com/watch?v=pMKTjTI_UGk).
 
 To succesfully use this plugin, you have to have a SpectroCoin Bitcoin wallet. You can get it [here](https://spectrocoin.com/en/bitcoin-wallet.html). Also you have to create a merchant project to get merchant and project IDs, to do so create a new merchant project [here](https://spectrocoin.com/en/merchant/api/create.html).
 

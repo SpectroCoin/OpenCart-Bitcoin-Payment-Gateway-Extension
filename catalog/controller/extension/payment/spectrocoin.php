@@ -107,7 +107,7 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
             exit;
         }
         $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
-        $client->setPrivateKey($privateKey);
+        $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
         if ($client->validateCreateOrderCallback($callback)) {
             if ($receiveCurrency != $callback->getReceiveCurrency()) {

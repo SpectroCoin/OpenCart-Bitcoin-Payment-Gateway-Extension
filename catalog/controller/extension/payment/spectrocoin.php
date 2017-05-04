@@ -107,37 +107,31 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
             exit;
         }
         $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
-        $client->setPrivateKey($privateKey);
+        $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
-        if ($client->validateCreateOrderCallback($callback)) {
-            if ($receiveCurrency != $callback->getReceiveCurrency()) {
-                echo 'Receive currency does not match.';
+        $orderId = $callback->getOrderId();
+        $order = $this->model_checkout_order->getOrder($orderId);
+        switch ($callback->getStatus()) {
+            case OrderStatusEnum::$Test:
+                break;
+            case OrderStatusEnum::$New:
+                break;
+            case OrderStatusEnum::$Pending:
+                $this->model_checkout_order->addOrderHistory($orderId, 2); // 2 - Processing
+                break;
+            case OrderStatusEnum::$Expired:
+                $this->model_checkout_order->addOrderHistory($orderId, 14); // 14 - Expired
+                break;
+            case OrderStatusEnum::$Failed:
+                $this->model_checkout_order->addOrderHistory($orderId, 7); // 7 - Canceled
+                break;
+            case OrderStatusEnum::$Paid:
+                $this->model_checkout_order->addOrderHistory($orderId, 15); // 15 - Processed
+                break;
+            default:
+                echo 'Unknown order status: ' . $callback->getStatus();
                 exit;
-            }
-            $orderId = $callback->getOrderId();
-            $order = $this->model_checkout_order->getOrder($orderId);
-            switch ($callback->getStatus()) {
-                case OrderStatusEnum::$Test:
-                    break;
-                case OrderStatusEnum::$New:
-                    break;
-                case OrderStatusEnum::$Pending:
-                    $this->model_checkout_order->addOrderHistory($orderId, 2); // 2 - Processing
-                    break;
-                case OrderStatusEnum::$Expired:
-                    $this->model_checkout_order->addOrderHistory($orderId, 14); // 14 - Expired
-                    break;
-                case OrderStatusEnum::$Failed:
-                    $this->model_checkout_order->addOrderHistory($orderId, 7); // 7 - Canceled
-                    break;
-                case OrderStatusEnum::$Paid:
-                    $this->model_checkout_order->addOrderHistory($orderId, 15); // 15 - Processed
-                    break;
-                default:
-                    echo 'Unknown order status: '.$callback->getStatus();
-                    exit;
-            }
-            echo '*ok*';
         }
+        echo '*ok*';
     }
 }

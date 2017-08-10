@@ -11,7 +11,7 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
 
     public function index() {
         $this->load->model('localisation/order_status');
-        $this->language->load('payment/spectrocoin');
+        $this->load->language('extension/payment/spectrocoin');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
 
@@ -21,9 +21,10 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
                 if (!$this->request->post['spectrocoin_private_key']) {
                     $this->request->post['spectrocoin_private_key'] = $this->config->get('spectrocoin_private_key');
                 }
-                $this->model_setting_setting->editSetting('spectrocoin', $this->request->post);
+                $this->model_setting_setting->editSetting('payment_spectrocoin', $this->request->post);
                 $this->session->data['success'] = $this->language->get('text_success');
-				$this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true));
+
+				$this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true));
             }
         }
         $data = array();
@@ -37,25 +38,21 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         }
 
         $this->loadBreadcrumbs($data);
+        $data['action'] = $this->url->link('extension/payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], 'SSL');
+        $data['cancel'] = HTTPS_SERVER . 'index.php?route=extension/payment&user_token=' . $this->session->data['user_token'];
 
-        $data['action'] = $this->url->link('extension/payment/spectrocoin', 'token=' . $this->session->data['token'], 'SSL');
-
-        $data['cancel'] = HTTPS_SERVER . 'index.php?route=extension/payment&token=' . $this->session->data['token'];
-
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_project');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_merchant');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_title');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_private_key');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_receive_currency');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_status');
-        $this->loadFromRequestOrFromConfig($data, 'spectrocoin_sort_order');
-
-
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_project');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_merchant');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_title');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_private_key');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_receive_currency');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_status');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_sort_order');
         $data['callback'] = HTTP_CATALOG . 'index.php?route=payment/spectrocoin/callback';
-
         $data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
-        $this->template = 'extension/payment/spectrocoin.tpl';
+        $this->template = 'extension/payment/spectrocoin';
+
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -82,17 +79,17 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_home'),
-            'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], 'SSL')
+            'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL')
         );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_payment'),
-            'href' => $this->url->link('extension/payment', 'token=' . $this->session->data['token'], 'SSL')
+            'href' => $this->url->link('extension/payment', 'user_token=' . $this->session->data['user_token'], 'SSL')
         );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('heading_title'),
-            'href' => $this->url->link('payment/spectrocoin', 'token=' . $this->session->data['token'], 'SSL')
+            'href' => $this->url->link('payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], 'SSL')
         );
     }
 

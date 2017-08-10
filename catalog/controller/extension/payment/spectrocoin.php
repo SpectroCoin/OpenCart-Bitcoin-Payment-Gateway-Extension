@@ -16,26 +16,26 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
             $data['back'] = HTTPS_SERVER . 'index.php?route=checkout/guest';
         }
         $this->load->model('checkout/order');
-        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/payment/spectrocoin.tpl')) {
-            return $this->load->view($this->config->get('config_template') . '/template/extension/payment/spectrocoin.tpl', $data);
+        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/payment/spectrocoin')) {
+            return $this->load->view($this->config->get('config_template') . '/template/extension/payment/spectrocoin', $data);
         } else
         {
-            return $this->load->view('extension/payment/spectrocoin.tpl', $data);
+            return $this->load->view('extension/payment/spectrocoin', $data);
         }
     }
     public function confirm()
     {
-        $privateKey = $this->config->get('spectrocoin_private_key');
-        $merchantId = $this->config->get('spectrocoin_merchant');
-        $appId = $this->config->get('spectrocoin_project');
+        $privateKey = $this->config->get('payment_spectrocoin_private_key');
+        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $appId = $this->config->get('payment_spectrocoin_project');
         if (!$privateKey || !$merchantId || !$appId) {
             $this->scError('Check admin panel');
         }
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
         if ($order['custom_field']) {
-            $time = $order['custom_field']['time'];
             $orderUrl = $order['custom_field']['url'];
+            $time = $order['custom_field']['time'];
             if ($orderUrl && $time && ($time + $this->time) > time()) {
                 header('Location: ' . $orderUrl);
             } else {
@@ -67,8 +67,8 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         }
         public function accept()
     {
-        if (isset($this->session->data['token'])) {
-            $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success&token=' . $this->session->data['token']);
+        if (isset($this->session->data['user_token'])) {
+            $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success&user_token=' . $this->session->data['user_token']);
         } else {
             $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success');
         }
@@ -94,14 +94,14 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         $data['heading_title'] = $this->language->get('heading_title');
         $data['text_failure'] = $this->language->get('text_failure');
         $data['text_failure_wait'] = $this->language->get('text_failure_wait');
-        $template = 'extension/payment/spectrocoin_failure.tpl';
+        $template = 'extension/payment/spectrocoin_failure';
         $this->response->setOutput($this->load->view($template, $data));
     }
     public function callback() {
-        $privateKey = $this->config->get('spectrocoin_private_key');
-        $receiveCurrency = $this->config->get('spectrocoin_receive_currency');
-        $merchantId = $this->config->get('spectrocoin_merchant');
-        $appId = $this->config->get('spectrocoin_project');
+        $privateKey = $this->config->get('payment_spectrocoin_private_key');
+        $receiveCurrency = $this->config->get('payment_spectrocoin_receive_currency');
+        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $appId = $this->config->get('payment_spectrocoin_project');
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;

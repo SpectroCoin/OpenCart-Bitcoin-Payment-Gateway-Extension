@@ -20,10 +20,11 @@ $_['entry_private_key']  = 'Private key:';
 $_['text_edit']          = 'Edit Spectrocoin';
 $_['entry_status']       = 'Status:';
 $_['entry_sort_order']   = 'Sort Order:';
-$_['entry_private_key_tooltip'] = 'Private key is not shown. If you want to change it, just enter your new private key to text box.';
+//$_['entry_private_key_tooltip'] = 'Private key is not shown. If you want to change it, just enter your new private key to text box.';
 
 // Help
 $_['help_callback']      = '';
+$_['help_private'] = 'Private key is not shown. If you want to change it, just enter your new private key to text box.';
 
 // Text
 $_['heading_title']      = 'SpectroCoin';

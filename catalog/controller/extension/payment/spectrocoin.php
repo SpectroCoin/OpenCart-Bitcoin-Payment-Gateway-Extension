@@ -26,9 +26,9 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
     public function confirm()
     {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
-        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $userId = $this->config->get('payment_spectrocoin_merchant');
         $appId = $this->config->get('payment_spectrocoin_project');
-        if (!$privateKey || !$merchantId || !$appId) {
+        if (!$privateKey || !$userId || !$appId) {
             $this->scError('Check admin panel');
         }
         $this->load->model('checkout/order');
@@ -51,7 +51,7 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         $callbackUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/callback';
         $successUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/accept';
         $cancelUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
         $response = $client->createOrder($orderRequest);
@@ -100,13 +100,13 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
     public function callback() {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
         $receiveCurrency = $this->config->get('payment_spectrocoin_receive_currency');
-        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $userId = $this->config->get('payment_spectrocoin_merchant');
         $appId = $this->config->get('payment_spectrocoin_project');
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
         $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
         $orderId = $callback->getOrderId();

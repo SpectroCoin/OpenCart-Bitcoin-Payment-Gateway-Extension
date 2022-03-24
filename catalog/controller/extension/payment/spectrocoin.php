@@ -53,7 +53,7 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         $cancelUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
         $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
         $client->setPrivateMerchantKey($privateKey);
-        $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
+        $orderRequest = new CreateOrderRequest($orderId, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
         $response = $client->createOrder($orderRequest);
                 if ($response instanceof ApiError) {
             throw new Exception('Spectrocoin error. Error code: ' . $response->getCode() . '. Message: ' . $response->getMessage());

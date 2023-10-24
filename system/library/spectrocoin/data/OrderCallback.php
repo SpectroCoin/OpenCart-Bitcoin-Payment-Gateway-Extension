@@ -1,10 +1,13 @@
 <?php
+namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 class OrderCallback
 {
 
 	private $userId;
 	private $merchantApiId;
+    private $merchantId;
+    private $apiId;
 	private $orderId;
 	private $payCurrency;
 	private $payAmount;
@@ -16,10 +19,12 @@ class OrderCallback
 	private $status;
 	private $sign;
 
-	function __construct($userId, $merchantApiId, $orderId, $payCurrency, $payAmount, $receiveCurrency, $receiveAmount, $receivedAmount, $description, $orderRequestId, $status, $sign)
+	function __construct($userId, $merchantApiId, $merchantId, $apiId, $orderId, $payCurrency, $payAmount, $receiveCurrency, $receiveAmount, $receivedAmount, $description, $orderRequestId, $status, $sign)
 	{
 		$this->userId = $userId;
 		$this->merchantApiId = $merchantApiId;
+        $this->merchantId = $merchantId;
+        $this->apiId = $apiId;
 		$this->orderId = $orderId;
 		$this->payCurrency = $payCurrency;
 		$this->payAmount = $payAmount;
@@ -47,6 +52,22 @@ class OrderCallback
 	{
 		return $this->merchantApiId;
 	}
+
+    /**
+     * @return mixed
+     */
+    public function getMerchantId()
+    {
+        return $this->merchantId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getApiId()
+    {
+        return $this->apiId;
+    }
 
 	/**
 	 * @return mixed
@@ -134,6 +155,8 @@ class OrderCallback
 
 		$valid &= $this->getUserId() > 0;
 		$valid &= $this->getMerchantApiId() > 0;
+        $valid &= $this->getMerchantId() > 0;
+        $valid &= $this->getApiId() > 0;
 		$valid &= $this->getOrderId() != '';
 		$valid &= $this->getPayCurrency() != '';
 		$valid &= $this->getPayAmount() > 0;

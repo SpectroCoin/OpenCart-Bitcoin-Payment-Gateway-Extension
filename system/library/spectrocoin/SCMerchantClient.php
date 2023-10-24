@@ -1,5 +1,5 @@
 <?php
-
+namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 /**
  * Created by UAB Spectro Fincance.
  * This is a sample SpectroCoin Merchant v1.1 API PHP client
@@ -64,9 +64,9 @@ class SCMerchantClient
 			'receiveAmount' => $request->getReceiveAmount(),
 			'description' => $request->getDescription(),
 			'culture' => $request->getCulture(),
-			'callbackUrl' => $request->getCallbackUrl(),
-			'successUrl' => $request->getSuccessUrl(),
-			'failureUrl' => $request->getFailureUrl()
+			'callbackUrl' => 'http://locahost.com/callback',
+			'successUrl' => 'http://locahost.com/callback',
+			'failureUrl' => 'http://locahost.com/callback'
 		);
 
 		$formHandler = new \Httpful\Handlers\FormHandler();
@@ -80,7 +80,7 @@ class SCMerchantClient
 				if ($body != null) {
 					if (is_array($body) && count($body) > 0 && isset($body[0]->code)) {
 						return new ApiError($body[0]->code, $body[0]->message);
-					} else if (isset($body->orderRequestId)) {
+					} else {
 						return new CreateOrderResponse($body->orderRequestId, $body->orderId, $body->depositAddress, $body->payAmount, $body->payCurrency, $body->receiveAmount, $body->receiveCurrency, $body->validUntil, $body->redirectUrl);
 					}
 				}
@@ -99,8 +99,6 @@ class SCMerchantClient
 		// compute signature
 		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
 		$encodedSignature = base64_encode($signature);
-		// free the key from memory
-		openssl_free_key($pkeyid);
 
 		return $encodedSignature;
 	}
@@ -113,8 +111,8 @@ class SCMerchantClient
 	{
 		$result = null;
 
-		if ($r != null && isset($r['userId'], $r['merchantApiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign'])) {
-			$result = new OrderCallback($r['userId'], $r['merchantApiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign']);
+		if ($r != null && isset($r['userId'], $r['merchantApiId'], $r['merchantId'], $r['apiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign'])) {
+			$result = new OrderCallback($r['userId'], $r['merchantApiId'], $r['merchantId'], $r['apiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign']);
 		}
 
 		return $result;
@@ -137,8 +135,8 @@ class SCMerchantClient
 				return $valid;
 
 			$payload = array(
-				'userId' => $c->getUserId(),
-				'merchantApiId' => $c->getMerchantApiId(),
+				'merchantId' => $c->getMerchantId(),
+				'apiId' => $c->getApiId(),
 				'orderId' => $c->getOrderId(),
 				'payCurrency' => $c->getPayCurrency(),
 				'payAmount' => $c->getPayAmount(),

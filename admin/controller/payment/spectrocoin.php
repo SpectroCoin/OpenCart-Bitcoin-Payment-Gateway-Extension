@@ -15,6 +15,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->load->language('extension/spectrocoin/payment/spectrocoin');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
+        $this->document->addStyle('view/style/payment/spectrocoin.css');
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
             if($this->validate()) {

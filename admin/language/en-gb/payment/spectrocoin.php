@@ -33,7 +33,7 @@ $_['text_failure']       = '... Your payment has been cancelled!';
 $_['text_failure_wait']  = '<b><span style="color: #FF0000">Please wait...</span></b><br>If you are not automatically re-directed in 10 seconds, please click <a href="%s">here</a>.';
 
 //Introductury text
-$_['info_heading'] = 'Introduction';
+$_['info_heading'] = '<b>Introduction</b>';
 $_['info_desc']    = 'The SpectrCoin plugin allows seamless integration of payment gateways into your Opencart website. To get started, you will need to obtain the essential credentials: Merchant ID, Project ID, and Private Key. These credentials are required to enable secure transactions between your website and the payment gateway. Follow the step-by-step tutorial below to acquire these credentials:';
 $_['info_step_1']  =  '1. <a href="https://auth.spectrocoin.com/signup" target="_blank">Sign up</a> for a Spectroin Account.';
 $_['info_step_2']  =  '2. <a href="https://auth.spectrocoin.com/login" target="_blank">Log in</a> to your Spectroin account.';
@@ -44,6 +44,6 @@ $_['info_step_6']  =  '6. The <b>Private</b> and <b>Public keys</b> are obtained
 $_['info_step_7']  =  '7. Click "<b>Submit</b>" to save the project and then click "<b>Close</b>".';
 $_['info_step_8']  =  '8. Select the option "<b><a href = "https://spectrocoin.com/en/merchants/projects">All projects</a></b>" and choose your project.';
 $_['info_step_9']  =  '9. In module settings fill the <b>merchant id</b> and <b>project id</b>.';
-$_['info_note']  =  '<b>Note:</b> Keep in mind that if you want to use the business services of SpectroCoin, your account has to be verified.';
+$_['info_note']    =  '<b>Note:</b> Keep in mind that if you want to use the business services of SpectroCoin, your account has to be verified.';
 
 

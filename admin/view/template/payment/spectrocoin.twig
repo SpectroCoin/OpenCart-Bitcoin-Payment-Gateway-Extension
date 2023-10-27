@@ -26,63 +26,75 @@
             </div>
 
 
-            <div class="panel-body">
-                <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-spectrocoin" class="form-horizontal">
+            <div class="panel-body flex-container">
+
+                <div class = "flex-left">
+
+                    <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-spectrocoin" class="form-horizontal">
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="entry_title">{{ entry_title }}</label>
-                        <div class="col-sm-10">
-
-                            <input type="text" name="payment_spectrocoin_title" value="{{ text_default_title }}" class="form-control" />
-                        </div>
+                        <input type="text" name="payment_spectrocoin_title" value="{{ text_default_title }}" class="form-control" />
                     </div>
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="entry_merchant">{{ entry_merchant }}</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="payment_spectrocoin_merchant" value="{{ payment_spectrocoin_merchant }}" class="form-control" />
-                        </div>
+                        <input type="text" name="payment_spectrocoin_merchant" value="{{ payment_spectrocoin_merchant }}" class="form-control" />
                     </div>
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="entry_project">{{ entry_project }}</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="payment_spectrocoin_project" value="{{ payment_spectrocoin_project }}" class="form-control" />
-                        </div>
+                        <input type="text" name="payment_spectrocoin_project" value="{{ payment_spectrocoin_project }}" class="form-control" />
                     </div>
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="entry_private_key">
                             <span data-toggle="tooltip" title="{{ help_private }}">{{entry_private_key }}</span>
                         </label>
-                        <div class="col-sm-10">
-                            <textarea name="payment_spectrocoin_private_key" class="form-control"></textarea>
-                        </div>
+                        <textarea name="payment_spectrocoin_private_key" class="form-control"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-status">{{ entry_display_payments }}</label>
-                        <div class="col-sm-10">
-                            <select name="payment_spectrocoin_status" id="input-status" class="form-control">
-
-                                {% if(payment_spectrocoin_status == 1) %}
-                                <option value="1" selected="selected">{{ text_enabled }}</option>
-                                <option value="0">{{ text_disabled }}</option>
-                                {% else %}
-                                <option value="1">{{ text_enabled }}</option>
-                                <option value="0" selected="selected">{{ text_disabled }}</option>
-                                {% endif %}
-
-                            </select>
-                        </div>
+                        <select name="payment_spectrocoin_status" id="input-status" class="form-control">
+                            {% if(payment_spectrocoin_status == 1) %}
+                            <option value="1" selected="selected">{{ text_enabled }}</option>
+                            <option value="0">{{ text_disabled }}</option>
+                            {% else %}
+                            <option value="1">{{ text_enabled }}</option>
+                            <option value="0" selected="selected">{{ text_disabled }}</option>
+                            {% endif %}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-sort-order">{{ entry_sort_order }}</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="payment_spectrocoin_sort_order" value="{{ payment_spectrocoin_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control" />
-                        </div>
+                        <input type="text" name="payment_spectrocoin_sort_order" value="{{ payment_spectrocoin_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control" />
                     </div>
                 </form>
+                </div>
+                <div class = "flex-right">
+                    <div class = "white-card">
+                        <a class = "spectrocoin-logo-link" target="_blank" href="http://www.spectrocoin.com"><img class = "spectrocoin-logo" src="view/image/payment/spectrocoin-logo.svg" alt="SpectroCoin" title="SpectroCoin" /></a>
+                        <h4>{{ info_heading }}</h4>
+
+                        <p>{{info_desc}}</p>
+
+                        <ul>
+                            <li>{{info_step_1}}</li>
+                            <li>{{info_step_2}}</li>
+                            <li>{{info_step_3}}</li>
+                            <li>{{info_step_4}}</li>
+                            <li>{{info_step_5}}</li>
+                            <li>{{info_step_6}}</li>
+                            <li>{{info_step_7}}</li>
+                            <li>{{info_step_8}}</li>
+                            <li>{{info_step_9}}</li>
+                        </ul>
+                        
+                        <p>{{info_note}}</p>
+                    
+                    </div>
+                </div>
             </div>
         </div>
 

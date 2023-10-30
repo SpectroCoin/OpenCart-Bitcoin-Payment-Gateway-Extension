@@ -20,11 +20,13 @@ $_['entry_private_key']  = 'Private key:';
 $_['text_edit']          = 'Edit Spectrocoin';
 $_['entry_status']       = 'Status:';
 $_['entry_sort_order']   = 'Sort Order:';
-//$_['entry_private_key_tooltip'] = 'Private key is not shown. If you want to change it, just enter your new private key to text box.';
 
 // Help
 $_['help_callback']      = '';
 $_['help_private'] = 'Private key is not shown. If you want to change it, just enter your new private key to text box.';
+$_['help_merchant'] = 'Enter your merchant ID. You can find it in your SpectroCoin project settings.';
+$_['help_project'] = 'Enter your project ID. You can find it in your SpectroCoin project settings.';
+$_['help_status'] = 'If set to \'On\', the Spectrocoin payment method will be enabled on checkout.';
 
 // Text
 $_['heading_title']      = 'SpectroCoin';

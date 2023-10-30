@@ -37,30 +37,29 @@
                         <input type="text" name="payment_spectrocoin_title" value="{{ text_default_title }}" class="form-control" />
                     </div>
 
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label" for="entry_merchant">{{ entry_merchant }}</label>
+                    <div class="form-group required">
+                        <label data-toggle="tooltip" title="{{ help_merchant }}" class="col-sm-6 control-label" for="entry_merchant">{{ entry_merchant }}</label>
                         <input type="text" name="payment_spectrocoin_merchant" value="{{ payment_spectrocoin_merchant }}" class="form-control" />
                     </div>
 
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label" for="entry_project">{{ entry_project }}</label>
+                    <div class="form-group required">
+                        <label data-toggle="tooltip" title="{{ help_project }}" class="col-sm-6 control-label" for="entry_project">{{ entry_project }}</label>
                         <input type="text" name="payment_spectrocoin_project" value="{{ payment_spectrocoin_project }}" class="form-control" />
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group required">
                         <label class="col-sm-6 control-label" for="entry_private_key">
-                            <span data-toggle="tooltip" title="{{ help_private }}">{{entry_private_key }}</span>
+                            <span data-toggle="tooltip" title="{{ help_private }}">{{entry_private_key}}</span>
                         </label>
-                        <textarea name="payment_spectrocoin_private_key" class="form-control"></textarea>
+                        <textarea name="payment_spectrocoin_private_key" class="form-control">{{payment_spectrocoin_private_key}}</textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="col-sm-6 control-label" for="input-status">{{ status_checkbox_label }}</label>
+                        <label data-toggle="tooltip" title="{{ help_status }}" class="col-sm-6 control-label" for="input-status">{{ status_checkbox_label }}</label>
                         <div class="form-check form-switch">
-                            <input type="checkbox" name="payment_spectrocoin_status" id="input-status" class="form-check-input" value="1" {% if payment_spectrocoin_status == 1 %}checked="checked"{% endif %}>
+                            <input id = "status-switch" type="checkbox" name="payment_spectrocoin_status" class="form-check-input" value="1" {% if payment_spectrocoin_status == 1 %}checked="checked"{% endif %}>
                         </div>
                     </div>
-
 
                     <div class="form-group">
                         <label class="col-sm-6 control-label" for="input-sort-order">{{ entry_sort_order }}</label>

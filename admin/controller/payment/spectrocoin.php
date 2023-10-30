@@ -8,7 +8,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         'entry_order_status', 'entry_geo_zone', 'entry_receive_currency', 'entry_status', 'entry_default_payments', 'entry_display_payments',
         'entry_sort_order', 'help_callback', 'button_save', 'button_cancel', 'tab_general', 'entry_private_key', 'text_default_title', 'entry_title',
         'text_spectrocoin', 'entry_private_key_tooltip', 'help_private' , 'info_heading', 'info_desc', 'info_step_1', 'info_step_2', 'info_step_3', 
-        'info_step_4', 'info_step_5', 'info_step_6', 'info_step_7', 'info_step_8', 'info_step_9', 'info_note'
+        'info_step_4', 'info_step_5', 'info_step_6', 'info_step_7', 'info_step_8', 'info_step_9', 'info_note', 'status_checkbox_label'
     );
 
     public function index() {

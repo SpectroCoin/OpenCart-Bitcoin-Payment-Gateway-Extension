@@ -55,17 +55,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-sm-6 control-label" for="input-status">{{ entry_display_payments }}</label>
-                        <select name="payment_spectrocoin_status" id="input-status" class="form-control">
-                            {% if(payment_spectrocoin_status == 1) %}
-                            <option value="1" selected="selected">{{ text_enabled }}</option>
-                            <option value="0">{{ text_disabled }}</option>
-                            {% else %}
-                            <option value="1">{{ text_enabled }}</option>
-                            <option value="0" selected="selected">{{ text_disabled }}</option>
-                            {% endif %}
-                        </select>
+                        <label class="col-sm-6 control-label" for="input-status">{{ status_checkbox_label }}</label>
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="payment_spectrocoin_status" id="input-status" class="form-check-input" value="1" {% if payment_spectrocoin_status == 1 %}checked="checked"{% endif %}>
+                        </div>
                     </div>
+
+
                     <div class="form-group">
                         <label class="col-sm-6 control-label" for="input-sort-order">{{ entry_sort_order }}</label>
                         <input type="text" name="payment_spectrocoin_sort_order" value="{{ payment_spectrocoin_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control" />

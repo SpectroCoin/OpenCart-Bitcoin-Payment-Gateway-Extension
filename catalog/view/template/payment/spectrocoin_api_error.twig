@@ -12,6 +12,7 @@
             </div>
             <div class="content_content">
                <div class="form_body">
+                  {% if error_causes %}
                   <div class = "form_content possible_cause">
                      <span class = "form-header">Possible causes:</span>
                      <ul class = "form-causes-list">
@@ -19,6 +20,7 @@
                      </ul>
                      <span class = "form-text"></span>
                   </div>
+                  {% endif %}
                   <a href = {{shop_link}} ><button>Return to shop</button></a>
                </div>
             </div>

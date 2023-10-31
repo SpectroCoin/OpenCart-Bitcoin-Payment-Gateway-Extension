@@ -142,4 +142,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         }
         echo '*ok*';
     }
+
+
+    
+
 }

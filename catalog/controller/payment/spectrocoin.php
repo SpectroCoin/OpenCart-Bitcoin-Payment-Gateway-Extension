@@ -25,8 +25,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->load->model('checkout/order');
         if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/spectrocoin/payment/spectrocoin')) {
             return $this->load->view($this->config->get('config_template') . '/template/extension/spectrocoin/payment/spectrocoin', $data);
-        } else
-        {
+        } 
+        else{
             return $this->load->view('extension/spectrocoin/payment/spectrocoin', $data);
         }
     }
@@ -36,22 +36,27 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
         $userId = $this->config->get('payment_spectrocoin_merchant');
         $appId = $this->config->get('payment_spectrocoin_project');
+
         if (!$privateKey || !$userId || !$appId) {
             $this->scError('Check admin panel');
         }
+
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
+
         if ($order['custom_field']) {
             $orderUrl = $order['custom_field']['url'];
             $time = $order['custom_field']['time'];
             if ($orderUrl && $time && ($time + $this->time) > time()) {
                 header('Location: ' . $orderUrl);
-            } else {
+            } 
+            else {
                 $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], 14);;
                 header('Location: ' . $this->url->link('common/home'));
                 exit;
             }
         }
+
         $currency = $order['currency_code'];
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $orderId = $order['order_id'];
@@ -63,17 +68,20 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
         $response = $client->createOrder($orderRequest);
-                if ($response instanceof ApiError) {
-            throw new Exception('Spectrocoin error. Error code: ' . $response->getCode() . '. Message: ' . $response->getMessage());
-        }  else {
-                $redirectUrl = $response->getRedirectUrl();
-                //Order status Pending
-                $this->model_checkout_order->addHistory($orderId, 1);
-                $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $orderId . '\'');
-                header('Location: ' . $redirectUrl);
-            }
+
+        if ($response instanceof ApiError) {
+            $this->apierror($response); 
+        }  
+        else {
+            $redirectUrl = $response->getRedirectUrl();
+            //Order status Pending
+            $this->model_checkout_order->addHistory($orderId, 1);
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $orderId . '\'');
+            header('Location: ' . $redirectUrl);
         }
-        public function accept()
+    }
+
+    public function accept()
     {
         if (isset($this->session->data['user_token'])) {
             $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success&user_token=' . $this->session->data['user_token']);
@@ -81,6 +89,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
             $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success');
         }
     }
+
     public function cancel()
     {
         $this->load->model('checkout/order');
@@ -105,6 +114,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $template = 'extension/spectrocoin/payment/spectrocoin_failure';
         $this->response->setOutput($this->load->view($template, $data));
     }
+
     public function callback() {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
         $receiveCurrency = $this->config->get('payment_spectrocoin_receive_currency');
@@ -143,7 +153,12 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         echo '*ok*';
     }
 
-
-    
-
+    public function apierror($response) {
+        $template = 'extension/spectrocoin/payment/spectrocoin_api_error';
+        $data['css_path'] = 'extension/spectrocoin/catalog/view/stylesheet/spectrocoin_api_error.css';
+        $data['error_code'] = $response->getCode();
+        $data['error_message'] = $response->getMessage();
+        $data['shop_link'] = $this->config->get('config_url');
+        $this->response->setOutput($this->load->view($template, $data));
+    }
 }

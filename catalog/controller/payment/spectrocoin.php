@@ -154,8 +154,10 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     }
 
     public function apierror($response) {
+
         $template = 'extension/spectrocoin/payment/spectrocoin_api_error';
         $data['css_path'] = 'extension/spectrocoin/catalog/view/stylesheet/spectrocoin_api_error.css';
+        $data['js_path'] = 'extension/spectrocoin/catalog/view/javascript/payment/spectrocoin_api_error.js';
         $data['error_code'] = $response->getCode();
         $data['error_message'] = $response->getMessage();
         $data['shop_link'] = $this->config->get('config_url');

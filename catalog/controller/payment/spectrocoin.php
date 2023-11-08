@@ -34,11 +34,11 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     public function confirm()
     {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
-        $userId = $this->config->get('payment_spectrocoin_merchant');
-        $appId = $this->config->get('payment_spectrocoin_project');
+        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $projectId = $this->config->get('payment_spectrocoin_project');
 
-        if (!$privateKey || !$userId || !$appId) {
-            $this->scError('Check admin panel');
+        if (!$privateKey || !$merchantId || !$projectId) {
+            $this->error_log('Check admin panel');
         }
 
         $this->load->model('checkout/order');
@@ -64,7 +64,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $callbackUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
         $successUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
         $cancelUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
         $response = $client->createOrder($orderRequest);
@@ -118,13 +118,13 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     public function callback() {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
         $receiveCurrency = $this->config->get('payment_spectrocoin_receive_currency');
-        $userId = $this->config->get('payment_spectrocoin_merchant');
-        $appId = $this->config->get('payment_spectrocoin_project');
+        $merchantId = $this->config->get('payment_spectrocoin_merchant');
+        $projectId = $this->config->get('payment_spectrocoin_project');
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId);
         $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
         $orderId = $callback->getOrderId();
@@ -175,7 +175,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
                 return '<li>Your shop FIAT currency is not supported by SpectroCoin, change it if possible</li>';
                 break;
             case 6:
-                return '<li>Check your merchantApiId and userId</li>';
+                return '<li>Check your merchantApiId and projectId</li>';
                 break;
             case 99:
                 return '<li>Incorrect url</li>

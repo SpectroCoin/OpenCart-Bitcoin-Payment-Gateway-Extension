@@ -5,6 +5,10 @@ namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
  * This is a sample SpectroCoin Merchant v1.1 API PHP client
  */
 
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+
+include_once('httpful.phar');
 include_once('components/FormattingUtil.php');
 include_once('data/ApiError.php');
 include_once('data/OrderStatusEnum.php');
@@ -12,6 +16,7 @@ include_once('data/OrderCallback.php');
 include_once('messages/CreateOrderRequest.php');
 include_once('messages/CreateOrderResponse.php');
 
+require __DIR__ . '/../../../vendor/autoload.php';
 
 class SCMerchantClient
 {
@@ -25,6 +30,8 @@ class SCMerchantClient
 	private $debug;
 
 	private $privateMerchantKey;
+
+	protected $httpClient;
 	/**
 	 * @param $merchantApiUrl
 	 * @param $userId
@@ -52,26 +59,23 @@ class SCMerchantClient
 	 * @return ApiError|CreateOrderResponse
 	 */
 	public function createOrder(CreateOrderRequest $request)
-    {
-        $payload = [
-            "userId" => $this->merchantId,
-            "merchantApiId" => $this->apiId,
-            "orderId" => $request->getOrderId(),
-            "payCurrency" => $request->getPayCurrency(),
-            "payAmount" => $request->getPayAmount(),
-            "receiveCurrency" => $request->getReceiveCurrency(),
-            "receiveAmount" => $request->getReceiveAmount(),
-            "description" => $request->getDescription(),
-            "payerEmail" => $request->getPayerEmail(),
-            "payerName" => $request->getPayerName(),
-            "payerSurname" => $request->getPayerSurname(),
-            "culture" => $request->getCulture(),
-            "callbackUrl" => "http://localhost.com",
-            "successUrl" => "http://localhost.com",
-            "failureUrl" => "http://localhost.com",
-        ];
+	{
+		$payload = array(
+			'userId' => $this->userId,
+			'merchantApiId' => $this->merchantApiId,
+			'orderId' => $request->getOrderId(),
+			'payCurrency' => $request->getPayCurrency(),
+			'payAmount' => $request->getPayAmount(),
+			'receiveCurrency' => $request->getReceiveCurrency(),
+			'receiveAmount' => $request->getReceiveAmount(),
+			'description' => $request->getDescription(),
+			'culture' => $request->getCulture(),
+			'callbackUrl' => 'http://locahost.com/callback',
+			'successUrl' => 'http://locahost.com/callback',
+			'failureUrl' => 'http://locahost.com/callback'
+		);
 
-        $payload["sign"] = $this->generateSignature(http_build_query($payload));
+		$payload["sign"] = $this->generateSignature(http_build_query($payload));
 
         //Initialize Symphony HTTP Client
         $httpClient = HttpClient::create();
@@ -116,7 +120,28 @@ class SCMerchantClient
             // Log other exceptions to the console or error log
             error_log("Exception: " . $exception->getMessage());
         }
-    }
+
+        if (!$this->debug) {
+            // Handle non-200 status codes here
+            // You may want to throw an exception or handle the error as needed
+            error_log("Exception: non-200");
+        } else {
+            // Handle the debug case here
+            error_log("Debug Response: " . $content);
+        }
+	}
+
+	private function generateSignature($data)
+	{
+		$privateKey = $this->privateMerchantKey != null ? $this->privateMerchantKey : file_get_contents($this->privateMerchantCertLocation);
+		$pkeyid = openssl_pkey_get_private($privateKey);
+
+		// compute signature
+		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
+		$encodedSignature = base64_encode($signature);
+
+		return $encodedSignature;
+	}
 
 	/**
 	 * @param $r $_REQUEST
@@ -137,43 +162,41 @@ class SCMerchantClient
 	 * @param OrderCallback $c
 	 * @return bool
 	 */
-	public function validateCreateOrderCallback(OrderCallback $orderCallback)
-    {
-        $valid = false;
+	public function validateCreateOrderCallback(OrderCallback $c)
+	{
+		$valid = false;
 
-        if ($orderCallback != null) {
-            if (
-                $this->userId != $orderCallback->getUserId() ||
-                $this->merchantApiId != $orderCallback->getMerchantApiId()
-            ) {
-                return $valid;
-            }
+		if ($c != null) {
 
-            if (!$orderCallback->validate()) {
-                return $valid;
-            }
+			if ($this->userId != $c->getUserId() || $this->merchantApiId != $c->getMerchantApiId())
+				return $valid;
 
-            $payload = [
-                "merchantId" => $orderCallback->getMerchantId(),
-                "apiId" => $orderCallback->getApiId(),
-                "orderId" => $orderCallback->getOrderId(),
-                "payCurrency" => $orderCallback->getPayCurrency(),
-                "payAmount" => $orderCallback->getPayAmount(),
-                "receiveCurrency" => $orderCallback->getReceiveCurrency(),
-                "receiveAmount" => $orderCallback->getReceiveAmount(),
-                "receivedAmount" => $orderCallback->getReceivedAmount(),
-                "description" => $orderCallback->getDescription(),
-                "orderRequestId" => $orderCallback->getOrderRequestId(),
-                "status" => $orderCallback->getStatus(),
-            ];
+			if (!$c->validate())
+				return $valid;
 
-            $data = http_build_query($payload);
+			$payload = array(
+				'merchantId' => $c->getMerchantId(),
+				'apiId' => $c->getApiId(),
+				'orderId' => $c->getOrderId(),
+				'payCurrency' => $c->getPayCurrency(),
+				'payAmount' => $c->getPayAmount(),
+				'receiveCurrency' => $c->getReceiveCurrency(),
+				'receiveAmount' => $c->getReceiveAmount(),
+				'receivedAmount' => $c->getReceivedAmount(),
+				'description' => $c->getDescription(),
+				'orderRequestId' => $c->getOrderRequestId(),
+				'status' => $c->getStatus(),
+			);
 
-            $valid = $this->validateSignature($data, $orderCallback->getSign());
-        }
+			$formHandler = new \Httpful\Handlers\FormHandler();
+			$data = $formHandler->serialize($payload);
+			$valid = $this->validateSignature($data, $c->getSign());
+		}
 
-        return $valid;
-    }
+		$data = http_build_query($payload);
+
+		$valid = $this->validateSignature($data, $orderCallback->getSign());
+	}
 
 	/**
 	 * @param $data

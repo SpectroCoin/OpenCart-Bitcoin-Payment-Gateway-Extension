@@ -5,6 +5,7 @@ $_['heading_title']      = 'SpectroCoin';
 
 // Text
 $_['text_default_title'] = 'Bitcoin provided by SpectroCoin';
+$_['text_spectrocoin_use']      = 'Use Spectrocoin';
 $_['text_payment']       = 'Payment';
 $_['text_success']       = 'Success: You have modified Spectrocoin account details!';
 $_['text_on']            = 'On';

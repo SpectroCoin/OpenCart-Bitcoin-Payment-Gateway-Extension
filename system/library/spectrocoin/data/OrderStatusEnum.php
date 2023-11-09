@@ -1,4 +1,5 @@
 <?php
+namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 class OrderStatusEnum {
 

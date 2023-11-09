@@ -1,28 +1,36 @@
 <?php
-require_once DIR_SYSTEM . 'library/spectrocoin/SCMerchantClient.php';
-class ControllerExtensionPaymentSpectrocoin extends Controller
+
+namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
+use Exception;
+
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCMerchantClient.php';
+
+
+class Spectrocoin extends \Opencart\System\Engine\Controller
 {
 	const merchantApiUrl = 'https://spectrocoin.com/api/merchant/1';
     var $time = 600;
+
     public function index()
     {
-        $data['action'] = $this->url->link('extension/payment/spectrocoin/confirm', '', 'SSL');
+        $data['action'] = $this->url->link('extension/spectrocoin/payment/spectrocoin.confirm', '', true);
         $data['button_confirm'] = $this->language->get('button_confirm');
         $data['button_back'] = $this->language->get('button_back');
-        $this->language->load('extension/payment/spectrocoin');
+        $this->language->load('extension/spectrocoin/payment/spectrocoin');
         if ($this->request->get['route'] != 'checkout/guest/confirm') {
-            $data['back'] = HTTPS_SERVER . 'index.php?route=checkout/payment';
+            $data['back'] = HTTP_SERVER . 'index.php?route=checkout/payment';
         } else {
-            $data['back'] = HTTPS_SERVER . 'index.php?route=checkout/guest';
+            $data['back'] = HTTP_SERVER . 'index.php?route=checkout/guest';
         }
         $this->load->model('checkout/order');
-        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/payment/spectrocoin')) {
-            return $this->load->view($this->config->get('config_template') . '/template/extension/payment/spectrocoin', $data);
+        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/spectrocoin/payment/spectrocoin')) {
+            return $this->load->view($this->config->get('config_template') . '/template/extension/spectrocoin/payment/spectrocoin', $data);
         } else
         {
-            return $this->load->view('extension/payment/spectrocoin', $data);
+            return $this->load->view('extension/spectrocoin/payment/spectrocoin', $data);
         }
     }
+
     public function confirm()
     {
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
@@ -48,9 +56,9 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $orderId = $order['order_id'];
         $orderDescription = "Order #{$orderId}";
-        $callbackUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/callback';
-        $successUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/accept';
-        $cancelUrl = HTTPS_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
+        $callbackUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
+        $successUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
+        $cancelUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
         $client = new SCMerchantClient(self::merchantApiUrl, $userId, $appId);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
@@ -60,7 +68,7 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         }  else {
                 $redirectUrl = $response->getRedirectUrl();
                 //Order status Pending
-                $this->model_checkout_order->addOrderHistory($orderId, 1);
+                $this->model_checkout_order->addHistory($orderId, 1);
                 $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $orderId . '\'');
                 header('Location: ' . $redirectUrl);
             }
@@ -68,9 +76,9 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         public function accept()
     {
         if (isset($this->session->data['user_token'])) {
-            $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success&user_token=' . $this->session->data['user_token']);
+            $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success&user_token=' . $this->session->data['user_token']);
         } else {
-            $this->response->redirect(HTTPS_SERVER . 'index.php?route=checkout/success');
+            $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success');
         }
     }
     public function cancel()
@@ -84,17 +92,17 @@ class ControllerExtensionPaymentSpectrocoin extends Controller
         $data = array();
         $data['title'] = sprintf($this->language->get('heading_title'), '/index.php?route=checkout/cart');
         if (isset($this->request->server['HTTPS']) and $this->request->server['HTTPS'] == 'on') {
-            $data['base'] = HTTPS_SERVER;
+            $data['base'] = HTTP_SERVER;
         }
         else
         {
             $data['base'] = HTTP_SERVER;
         }
-        $data['continue'] = HTTPS_SERVER . '/index.php?route=checkout/cart';
+        $data['continue'] = HTTP_SERVER . '/index.php?route=checkout/cart';
         $data['heading_title'] = $this->language->get('heading_title');
         $data['text_failure'] = $this->language->get('text_failure');
         $data['text_failure_wait'] = $this->language->get('text_failure_wait');
-        $template = 'extension/payment/spectrocoin_failure';
+        $template = 'extension/spectrocoin/payment/spectrocoin_failure';
         $this->response->setOutput($this->load->view($template, $data));
     }
     public function callback() {

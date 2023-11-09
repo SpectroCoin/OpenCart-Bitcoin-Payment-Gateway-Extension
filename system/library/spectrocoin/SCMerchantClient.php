@@ -1,11 +1,5 @@
 <?php
-
-//SCMerchantClient.php
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
-
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 /**
  * Created by UAB Spectro Fincance.
  * This is a sample SpectroCoin Merchant v1.1 API PHP client
@@ -19,12 +13,12 @@ include_once('data/OrderCallback.php');
 include_once('messages/CreateOrderRequest.php');
 include_once('messages/CreateOrderResponse.php');
 
-require __DIR__ . '/../../../vendor/autoload.php';
 
 class SCMerchantClient
 {
 
 	private $merchantApiUrl;
+	private $privateMerchantCertLocation;
 	private $publicSpectroCoinCertLocation;
 
 	private $userId;
@@ -32,27 +26,20 @@ class SCMerchantClient
 	private $debug;
 
 	private $privateMerchantKey;
-
-	protected $client;
-	protected $log;
 	/**
 	 * @param $merchantApiUrl
 	 * @param $userId
 	 * @param $merchantApiId
 	 * @param bool $debug
 	 */
-	function __construct($merchantApiUrl, $userId, $merchantApiId, $log, $debug = false)
+	function __construct($merchantApiUrl, $userId, $merchantApiId, $debug = false)
 	{
+		$this->privateMerchantCertLocation = dirname(__FILE__) . '/../cert/mprivate.pem';
 		$this->publicSpectroCoinCertLocation = 'https://spectrocoin.com/files/merchant.public.pem';
 		$this->merchantApiUrl = $merchantApiUrl;
 		$this->userId = $userId;
 		$this->merchantApiId = $merchantApiId;
 		$this->debug = $debug;
-
-		$this->client = new Client();
-
-		$this->log = $log;
-
 	}
 
 	/**
@@ -82,70 +69,39 @@ class SCMerchantClient
 			'failureUrl' => 'http://locahost.com/callback'
 		);
 
-		$form_params = $payload;
-    $signature = $this->generateSignature(http_build_query($form_params));
-    $payload['sign'] = $signature;
-
-    try {
-        $response = $this->client->post($this->merchantApiUrl . '/createOrder', [
-            'form_params' => $payload,
-            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-        ]);
-
-        $body = json_decode($response->getBody());
-
-        if (is_array($body) && count($body) > 0 && isset($body[0]->code)) {
-            return new ApiError($body[0]->code, $body[0]->message);
-        } else {
-            return new CreateOrderResponse(
-                $body->orderRequestId,
-                $body->orderId,
-                $body->depositAddress,
-                $body->payAmount,
-                $body->payCurrency,
-                $body->receiveAmount,
-                $body->receiveCurrency,
-                $body->validUntil,
-                $body->redirectUrl
-            );
-        }
-    } catch (RequestException $e) {
-
-		$errorBody = json_decode($e->getResponse()->getBody());
-        if ($errorBody !== null && is_array($errorBody) && count($errorBody) > 0 && isset($errorBody[0]->code)) {
-			$code = $errorBody[0]->code;
-			$message = $errorBody[0]->message;
-			return new ApiError($code, $message);
-		} else {
-			return new ApiError(-1, 'Unexpected error');
+		$formHandler = new \Httpful\Handlers\FormHandler();
+		$data = $formHandler->serialize($payload);
+		$signature = $this->generateSignature($data);
+		$payload['sign'] = $signature;
+		if (!$this->debug) {
+			$response = \Httpful\Request::post($this->merchantApiUrl . '/createOrder', $payload, \Httpful\Mime::FORM)->expects(\Httpful\Mime::JSON)->send();
+			if ($response != null) {
+				$body = $response->body;
+				if ($body != null) {
+					if (is_array($body) && count($body) > 0 && isset($body[0]->code)) {
+						return new ApiError($body[0]->code, $body[0]->message);
+					} else {
+						return new CreateOrderResponse($body->orderRequestId, $body->orderId, $body->depositAddress, $body->payAmount, $body->payCurrency, $body->receiveAmount, $body->receiveCurrency, $body->validUntil, $body->redirectUrl);
+					}
+				}
 			}
-    	}
+		} else {
+			$response = \Httpful\Request::post($this->merchantApiUrl . '/createOrder', $payload, \Httpful\Mime::FORM)->send();
+			exit('<pre>'.print_r($response, true).'</pre>');
+		}
 	}
 
 	private function generateSignature($data)
 	{
-		$privateKey = $this->privateMerchantKey;
+		$privateKey = $this->privateMerchantKey != null ? $this->privateMerchantKey : file_get_contents($this->privateMerchantCertLocation);
 		$pkeyid = openssl_pkey_get_private($privateKey);
-
-		if ($pkeyid === false) {
-			// Handle error: Unable to load private key
-			error_log("Error: Unable to load private key");
-			return false;
-		}
 
 		// compute signature
 		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
-		if ($s === false) {
-			// Handle error: Signature generation failed
-			error_log("Error: Signature generation failed");
-			return false;
-		}
-
 		$encodedSignature = base64_encode($signature);
 
 		return $encodedSignature;
 	}
-
 
 	/**
 	 * @param $r $_REQUEST
@@ -211,6 +167,7 @@ class SCMerchantClient
 		$publicKey = file_get_contents($this->publicSpectroCoinCertLocation);
 		$public_key_pem = openssl_pkey_get_public($publicKey);
 		$r = openssl_verify($data, $sig, $public_key_pem, OPENSSL_ALGO_SHA1);
+		openssl_free_key($public_key_pem);
 
 		return $r;
 	}

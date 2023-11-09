@@ -1,5 +1,2 @@
 {
-    "require": {
-        "guzzlehttp/guzzle": "^7.8"
-    }
 }

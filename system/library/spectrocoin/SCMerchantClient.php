@@ -64,9 +64,9 @@ class SCMerchantClient
 			'receiveAmount' => $request->getReceiveAmount(),
 			'description' => $request->getDescription(),
 			'culture' => $request->getCulture(),
-			'callbackUrl' => 'http://locahost.com/callback',
-			'successUrl' => 'http://locahost.com/callback',
-			'failureUrl' => 'http://locahost.com/callback'
+			'callbackUrl' => $request->getCallbackUrl(),
+			'successUrl' => $request->getSuccessUrl(),
+			'failureUrl' => $request->getFailureUrl()
 		);
 
 		$formHandler = new \Httpful\Handlers\FormHandler();

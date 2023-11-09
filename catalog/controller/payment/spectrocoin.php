@@ -36,9 +36,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $privateKey = $this->config->get('payment_spectrocoin_private_key');
         $merchantId = $this->config->get('payment_spectrocoin_merchant');
         $projectId = $this->config->get('payment_spectrocoin_project');
-
+        
         if (!$privateKey || !$merchantId || !$projectId) {
-            $this->error_log('Check admin panel');
+            $this -> log -> write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
         }
 
         $this->load->model('checkout/order');
@@ -64,14 +64,17 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $callbackUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
         $successUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
         $cancelUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId, $this->log);
         $client->setPrivateMerchantKey($privateKey);
         $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
-        $response = $client->createOrder($orderRequest);
-
+        $response = $client->createOrder($orderRequest); //TODO FIX
         if ($response instanceof ApiError) {
+            $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
             $this->apierror($response); 
-        }  
+        } 
+        else if($response == null){
+            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__ );
+        } 
         else {
             $redirectUrl = $response->getRedirectUrl();
             //Order status Pending
@@ -124,7 +127,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId);
+        $client = new SCMerchantClient(self::merchantApiUrl, $merchantId, $projectId, $this->log);
         $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
         $orderId = $callback->getOrderId();

@@ -1,12 +1,15 @@
 <?php
+
+//SCMerchantClient.php
+
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 /**
  * Created by UAB Spectro Fincance.
  * This is a sample SpectroCoin Merchant v1.1 API PHP client
  */
-
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 include_once('httpful.phar');
 include_once('components/FormattingUtil.php');
@@ -22,7 +25,6 @@ class SCMerchantClient
 {
 
 	private $merchantApiUrl;
-	private $privateMerchantCertLocation;
 	private $publicSpectroCoinCertLocation;
 
 	private $userId;
@@ -31,21 +33,26 @@ class SCMerchantClient
 
 	private $privateMerchantKey;
 
-	protected $httpClient;
+	protected $client;
+	protected $log;
 	/**
 	 * @param $merchantApiUrl
 	 * @param $userId
 	 * @param $merchantApiId
 	 * @param bool $debug
 	 */
-	function __construct($merchantApiUrl, $userId, $merchantApiId, $debug = false)
+	function __construct($merchantApiUrl, $userId, $merchantApiId, $log, $debug = false)
 	{
-		$this->privateMerchantCertLocation = dirname(__FILE__) . '/../cert/mprivate.pem';
 		$this->publicSpectroCoinCertLocation = 'https://spectrocoin.com/files/merchant.public.pem';
 		$this->merchantApiUrl = $merchantApiUrl;
 		$this->userId = $userId;
 		$this->merchantApiId = $merchantApiId;
 		$this->debug = $debug;
+
+		$this->client = new Client();
+
+		$this->log = $log;
+
 	}
 
 	/**
@@ -75,73 +82,70 @@ class SCMerchantClient
 			'failureUrl' => 'http://locahost.com/callback'
 		);
 
-		$payload["sign"] = $this->generateSignature(http_build_query($payload));
+		$form_params = $payload;
+    $signature = $this->generateSignature(http_build_query($form_params));
+    $payload['sign'] = $signature;
 
-        //Initialize Symphony HTTP Client
-        $httpClient = HttpClient::create();
+    try {
+        $response = $this->client->post($this->merchantApiUrl . '/createOrder', [
+            'form_params' => $payload,
+            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+        ]);
 
-        try {
-            $response = $httpClient->request( "POST" , $this->merchantApiUrl . "/createOrder", 
-			["headers" => ["Content-Type" => "application/x-www-form-urlencoded",],"body" => http_build_query($payload),]
-            );
+        $body = json_decode($response->getBody());
 
-            $statusCode = $response->getStatusCode();
-            $content = $response->getContent();
-
-			echo json_encode(json_decode($content), JSON_PRETTY_PRINT); 
-
-            if ($statusCode === 200) {
-                $body = json_decode($content);
-
-                if (
-                    is_array($body) &&
-                    count($body) > 0 &&
-                    isset($body[0]->code)
-                ) {
-                    return new ApiError($body[0]->code, $body[0]->message);
-                } else {
-                    return new CreateOrderResponse(
-                        $body->orderRequestId,
-                        $body->orderId,
-                        $body->depositAddress,
-                        $body->payAmount,
-                        $body->payCurrency,
-                        $body->receiveAmount,
-                        $body->receiveCurrency,
-                        $body->validUntil,
-                        $body->redirectUrl
-                    );
-                }
-            }
-        } catch (TransportExceptionInterface $exception) {
-            // Log transport errors to the console or error log
-            error_log("Transport Exception: " . $exception->getMessage());
-        } catch (\Exception $exception) {
-            // Log other exceptions to the console or error log
-            error_log("Exception: " . $exception->getMessage());
-        }
-
-        if (!$this->debug) {
-            // Handle non-200 status codes here
-            // You may want to throw an exception or handle the error as needed
-            error_log("Exception: non-200");
+        if (is_array($body) && count($body) > 0 && isset($body[0]->code)) {
+            return new ApiError($body[0]->code, $body[0]->message);
         } else {
-            // Handle the debug case here
-            error_log("Debug Response: " . $content);
+            return new CreateOrderResponse(
+                $body->orderRequestId,
+                $body->orderId,
+                $body->depositAddress,
+                $body->payAmount,
+                $body->payCurrency,
+                $body->receiveAmount,
+                $body->receiveCurrency,
+                $body->validUntil,
+                $body->redirectUrl
+            );
         }
+    } catch (RequestException $e) {
+
+		$errorBody = json_decode($e->getResponse()->getBody());
+        if ($errorBody !== null && is_array($errorBody) && count($errorBody) > 0 && isset($errorBody[0]->code)) {
+			$code = $errorBody[0]->code;
+			$message = $errorBody[0]->message;
+			return new ApiError($code, $message);
+		} else {
+			return new ApiError(-1, 'Unexpected error');
+			}
+    	}
 	}
 
 	private function generateSignature($data)
 	{
-		$privateKey = $this->privateMerchantKey != null ? $this->privateMerchantKey : file_get_contents($this->privateMerchantCertLocation);
+		$privateKey = $this->privateMerchantKey;
 		$pkeyid = openssl_pkey_get_private($privateKey);
+
+		if ($pkeyid === false) {
+			// Handle error: Unable to load private key
+			error_log("Error: Unable to load private key");
+			return false;
+		}
 
 		// compute signature
 		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
+		if ($s === false) {
+			// Handle error: Signature generation failed
+			error_log("Error: Signature generation failed");
+			return false;
+		}
+
 		$encodedSignature = base64_encode($signature);
 
 		return $encodedSignature;
 	}
+
 
 	/**
 	 * @param $r $_REQUEST
@@ -193,9 +197,7 @@ class SCMerchantClient
 			$valid = $this->validateSignature($data, $c->getSign());
 		}
 
-		$data = http_build_query($payload);
-
-		$valid = $this->validateSignature($data, $orderCallback->getSign());
+		return $valid;
 	}
 
 	/**

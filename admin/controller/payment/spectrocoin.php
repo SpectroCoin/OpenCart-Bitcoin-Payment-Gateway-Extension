@@ -1,4 +1,5 @@
 <?php
+
 namespace Opencart\Admin\Controller\Extension\Spectrocoin\Payment;
 class Spectrocoin extends \Opencart\System\Engine\Controller
 {
@@ -17,19 +18,17 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
         $this->document->addStyle('view/stylesheet/spectrocoin.css');
-        $this->document->addScript('view/javascript/payment/spectrocoin.js');
-        
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
-            if($this->validate()) {
+            $privateKey = isset($this->request->post['spectrocoin_private_key']) ? $this->request->post['spectrocoin_private_key'] : $this->config->get('spectrocoin_private_key');
+    
+            if ($this->validate()) {
                 $this->load->model('setting/setting');
-                if (!$this->request->post['spectrocoin_private_key']) {
-                    $this->request->post['spectrocoin_private_key'] = $this->config->get('spectrocoin_private_key');
-                }
+                $this->request->post['spectrocoin_private_key'] = $privateKey;
                 $this->model_setting_setting->editSetting('payment_spectrocoin', $this->request->post);
                 $this->session->data['success'] = $this->language->get('text_success');
-
-				$this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true));
+    
+                $this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true));
             }
         }
         $data = array();

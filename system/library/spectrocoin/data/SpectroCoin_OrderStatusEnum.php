@@ -1,7 +1,8 @@
 <?php
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-class OrderStatusEnum {
+class SpectroCoin_OrderStatusEnum
+{
 
 	public static $New = 1;
 	public static $Pending = 2;
@@ -10,4 +11,4 @@ class OrderStatusEnum {
 	public static $Expired = 5;
 	public static $Test = 6;
 
-} 
+}

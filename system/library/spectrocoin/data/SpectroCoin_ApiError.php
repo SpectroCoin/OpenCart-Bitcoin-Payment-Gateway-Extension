@@ -1,7 +1,7 @@
 <?php
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-class ApiError
+class SpectroCoin_ApiError
 {
 	private $code;
 	private $message;

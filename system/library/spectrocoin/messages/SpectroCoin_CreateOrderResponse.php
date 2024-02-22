@@ -1,7 +1,7 @@
 <?php
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-class CreateOrderResponse
+class SpectroCoin_CreateOrderResponse
 {
 
 	private $depositAddress;

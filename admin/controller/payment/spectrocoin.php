@@ -18,7 +18,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
         $this->document->addStyle('view/stylesheet/spectrocoin.css');
-
+        //...
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
             $privateKey = isset($this->request->post['spectrocoin_private_key']) ? $this->request->post['spectrocoin_private_key'] : $this->config->get('spectrocoin_private_key');
     

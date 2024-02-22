@@ -1,13 +1,12 @@
 <?php
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-class OrderCallback
+class SpectroCoin_OrderCallback
 {
-
 	private $userId;
 	private $merchantApiId;
-    private $merchantId;
-    private $apiId;
+	private $merchantId;
+	private $apiId;
 	private $orderId;
 	private $payCurrency;
 	private $payAmount;
@@ -19,12 +18,13 @@ class OrderCallback
 	private $status;
 	private $sign;
 
+
 	function __construct($userId, $merchantApiId, $merchantId, $apiId, $orderId, $payCurrency, $payAmount, $receiveCurrency, $receiveAmount, $receivedAmount, $description, $orderRequestId, $status, $sign)
 	{
 		$this->userId = $userId;
 		$this->merchantApiId = $merchantApiId;
-        $this->merchantId = $merchantId;
-        $this->apiId = $apiId;
+		$this->merchantId = $merchantId;
+		$this->apiId = $apiId;
 		$this->orderId = $orderId;
 		$this->payCurrency = $payCurrency;
 		$this->payAmount = $payAmount;
@@ -40,7 +40,7 @@ class OrderCallback
 	/**
 	 * @return mixed
 	 */
-	public function getUserId()
+	public function getuserId()
 	{
 		return $this->userId;
 	}
@@ -48,26 +48,26 @@ class OrderCallback
 	/**
 	 * @return mixed
 	 */
-	public function getMerchantApiId()
+	public function getmerchantApiId()
 	{
 		return $this->merchantApiId;
 	}
 
-    /**
-     * @return mixed
-     */
-    public function getMerchantId()
-    {
-        return $this->merchantId;
-    }
+	/**
+	 * @return mixed
+	 */
+	public function getMerchantId()
+	{
+		return $this->merchantId;
+	}
 
-    /**
-     * @return mixed
-     */
-    public function getApiId()
-    {
-        return $this->apiId;
-    }
+	/**
+	 * @return mixed
+	 */
+	public function getApiId()
+	{
+		return $this->apiId;
+	}
 
 	/**
 	 * @return mixed
@@ -90,7 +90,7 @@ class OrderCallback
 	 */
 	public function getPayAmount()
 	{
-		return FormattingUtil::formatCurrency($this->payAmount == null ? 0.0 : $this->payAmount);
+		return SpectroCoin_Utilities::spectrocoin_format_currency($this->payAmount == null ? 0.0 : $this->payAmount);
 	}
 
 	/**
@@ -106,7 +106,7 @@ class OrderCallback
 	 */
 	public function getReceiveAmount()
 	{
-		return FormattingUtil::formatCurrency($this->receiveAmount == null ? 0.0 : $this->receiveAmount);
+		return SpectroCoin_Utilities::spectrocoin_format_currency($this->receiveAmount == null ? 0.0 : $this->receiveAmount);
 	}
 
 	/**
@@ -114,7 +114,7 @@ class OrderCallback
 	 */
 	public function getReceivedAmount()
 	{
-		return FormattingUtil::formatCurrency($this->receivedAmount == null ? 0.0 : $this->receivedAmount);
+		return SpectroCoin_Utilities::spectrocoin_format_currency($this->receivedAmount == null ? 0.0 : $this->receivedAmount);
 	}
 
 	/**
@@ -153,10 +153,10 @@ class OrderCallback
 	{
 		$valid = true;
 
-		$valid &= $this->getUserId() > 0;
-		$valid &= $this->getMerchantApiId() > 0;
-        $valid &= $this->getMerchantId() > 0;
-        $valid &= $this->getApiId() > 0;
+		$valid &= $this->getuserId() != '';
+		$valid &= $this->getmerchantApiId() != '';
+		$valid &= $this->getMerchantId() > 0;
+		$valid &= $this->getApiId() > 0;
 		$valid &= $this->getOrderId() != '';
 		$valid &= $this->getPayCurrency() != '';
 		$valid &= $this->getPayAmount() > 0;
@@ -169,6 +169,8 @@ class OrderCallback
 
 		return $valid;
 	}
+
+
 
 
 } 

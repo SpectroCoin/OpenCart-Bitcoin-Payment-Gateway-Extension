@@ -4,12 +4,8 @@ namespace Opencart\Catalog\Model\Extension\Spectrocoin\Payment;
 class Spectrocoin extends \Opencart\System\Engine\Model {
     public function getMethods($address) {
         $this->load->language('extension/spectrocoin/payment/spectrocoin');
-
-        if ($this->config->get('payment_spectrocoin_status')) {
-            $status = true;
-        } else {
-            $status = false;
-        }
+        
+        $status = $this->config->get('payment_spectrocoin_status') ? true : false;
         
         $method_data = array();
 

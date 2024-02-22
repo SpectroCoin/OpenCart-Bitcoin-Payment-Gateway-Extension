@@ -6,12 +6,7 @@ namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-/**
- * Created by UAB Spectro Fincance.
- * This is a sample SpectroCoin Merchant v1.1 API PHP client
- */
 
-include_once('httpful.phar');
 include_once('components/FormattingUtil.php');
 include_once('data/ApiError.php');
 include_once('data/OrderStatusEnum.php');

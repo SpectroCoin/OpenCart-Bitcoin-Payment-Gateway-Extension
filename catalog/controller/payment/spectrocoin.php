@@ -34,22 +34,22 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
     public function confirm()
     {
-        $privateKey = $this->config->get('payment_spectrocoin_private_key');
-        $merchantId = $this->config->get('payment_spectrocoin_merchant');
-        $projectId = $this->config->get('payment_spectrocoin_project');
+        $merchant_id = $this->config->get('payment_spectrocoin_merchant');
+        $client_id = $this->config->get('payment_client_id');
+        $client_secret = $this->config->get('payment_client_secret');
         
-        if (!$privateKey || !$merchantId || !$projectId) {
-            $this -> log -> write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
+        if (!$merchant_id || !$client_id || !$client_secret) {
+            $this->log->write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
         }
 
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
         if ($order['custom_field']) {
-            $orderUrl = $order['custom_field']['url'];
+            $order_url = $order['custom_field']['url'];
             $time = $order['custom_field']['time'];
-            if ($orderUrl && $time && ($time + $this->time) > time()) {
-                header('Location: ' . $orderUrl);
+            if ($order_url && $time && ($time + $this->time) > time()) {
+                header('Location: ' . $order_url);
             } 
             else {
                 $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], 14);;
@@ -61,7 +61,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $currency = $order['currency_code'];
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $orderId = $order['order_id'];
-        $orderDescription = "Order #{$orderId}";
+        $orderDescription = "Order #{$order_id}";
         $callbackUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
         $successUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
         $cancelUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
@@ -79,8 +79,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         else {
             $redirectUrl = $response->getRedirectUrl();
             //Order status Pending
-            $this->model_checkout_order->addHistory($orderId, 1);
-            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $orderId . '\'');
+            $this->model_checkout_order->addHistory($order_id, 1);
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $order_id . '\'');
             header('Location: ' . $redirectUrl);
         }
     }
@@ -131,24 +131,24 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $client = new SCMerchantClient(self::MERCHANT_API_URL, $merchantId, $projectId, $this->log);
         $client->setPrivateMerchantKey($privateKey);
         $callback = $client->parseCreateOrderCallback($_REQUEST);
-        $orderId = $callback->getOrderId();
-        $order = $this->model_checkout_order->getOrder($orderId);
+        $order_id = $callback->getOrderId();
+        $order = $this->model_checkout_order->getOrder($order_id);
         switch ($callback->getStatus()) {
             case OrderStatusEnum::$Test:
                 break;
             case OrderStatusEnum::$New:
                 break;
             case OrderStatusEnum::$Pending:
-                $this->model_checkout_order->addOrderHistory($orderId, 2); // 2 - Processing
+                $this->model_checkout_order->addOrderHistory($order_id, 2); // 2 - Processing
                 break;
             case OrderStatusEnum::$Expired:
-                $this->model_checkout_order->addOrderHistory($orderId, 14); // 14 - Expired
+                $this->model_checkout_order->addOrderHistory($order_id, 14); // 14 - Expired
                 break;
             case OrderStatusEnum::$Failed:
-                $this->model_checkout_order->addOrderHistory($orderId, 7); // 7 - Canceled
+                $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
                 break;
             case OrderStatusEnum::$Paid:
-                $this->model_checkout_order->addOrderHistory($orderId, 15); // 15 - Processed
+                $this->model_checkout_order->addOrderHistory($order_id, 15); // 15 - Processed
                 break;
             default:
                 echo 'Unknown order status: ' . $callback->getStatus();

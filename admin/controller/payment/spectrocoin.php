@@ -21,7 +21,6 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {    
             if ($this->validate()) {
                 $this->load->model('setting/setting');
-                $this->request->post['spectrocoin_private_key'] = $privateKey;
                 $this->model_setting_setting->editSetting('payment_spectrocoin', $this->request->post);
                 $this->session->data['success'] = $this->language->get('text_success');
     

@@ -11,6 +11,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 	const MERCHANT_API_URL = 'https://test.spectrocoin.com/api/public';
     const AUTH_URL = 'https://test.spectrocoin.com/api/public/oauth/token';
     var $time = 600;
+    protected $client = null;
 
     public function index()
     {
@@ -34,11 +35,11 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
     public function confirm()
     {
-        $merchant_id = $this->config->get('payment_spectrocoin_merchant');
+        $project_id = $this->config->get('payment_spectrocoin_merchant');
         $client_id = $this->config->get('payment_client_id');
         $client_secret = $this->config->get('payment_client_secret');
         
-        if (!$merchant_id || !$client_id || !$client_secret) {
+        if (!$project_id || !$client_id || !$client_secret) {
             $this->log->write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
         }
 
@@ -60,28 +61,38 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
         $currency = $order['currency_code'];
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
-        $orderId = $order['order_id'];
-        $orderDescription = "Order #{$order_id}";
-        $callbackUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
-        $successUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
-        $cancelUrl = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(self::MERCHANT_API_URL, $merchantId, $projectId, $this->log);
-        $client->setPrivateMerchantKey($privateKey);
-        $orderRequest = new CreateOrderRequest(null, "BTC", null, $currency, $amount, $orderDescription, "en", $callbackUrl, $successUrl, $cancelUrl);
-        $response = $client->createOrder($orderRequest); //TODO FIX
-        if ($response instanceof ApiError) {
+        $order_id = $order['order_id'];
+        $description = "Order #{$order_id}";
+        $callback_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
+        $success_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
+        $failure_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
+        $client = new SCMerchantClient(self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
+        $order_request = new SpectroCoin_CreateOrderRequest(
+            $order_id . "-" . $this->random_str(5),
+            $description,
+            null, 
+            'BTC',
+            $amount, 
+            $currency, 
+            $callback_url, 
+            $success_url, 
+            $failure_url
+        );
+        $response = $client->spectrocoin_create_order($order_request);
+        if ($response instanceof SpectroCoin_ApiError) {
             $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
-            $this->apierror($response); 
+            $this->api_error($response); 
         } 
         else if($response == null){
             $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__ );
+            $this->api_error('');
         } 
         else {
-            $redirectUrl = $response->getRedirectUrl();
+            $redirect_url = $response->getRedirectUrl();
             //Order status Pending
             $this->model_checkout_order->addHistory($order_id, 1);
-            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirectUrl, 'time' => time())) . '\' WHERE order_id=\'' . $order_id . '\'');
-            header('Location: ' . $redirectUrl);
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirect_url, 'time' => time())) . '\' WHERE order_id=\'' . $order_id . '\'');
+            header('Location: ' . $redirect_url);
         }
     }
 
@@ -120,34 +131,44 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     }
 
     public function callback() {
-        $privateKey = $this->config->get('payment_spectrocoin_private_key');
-        $receiveCurrency = $this->config->get('payment_spectrocoin_receive_currency');
-        $merchantId = $this->config->get('payment_spectrocoin_merchant');
-        $projectId = $this->config->get('payment_spectrocoin_project');
+        $expected_keys = ['userId', 'merchantApiId', 'merchantId', 'apiId', 'orderId', 'payCurrency', 'payAmount', 'receiveCurrency', 'receiveAmount', 'receivedAmount', 'description', 'orderRequestId', 'status', 'sign'];
+
+        $project_id = $this->config->get('payment_spectrocoin_project');
+        $client_id = $this->config->get('payment_client_id');
+        $client_secret = $this->config->get('payment_client_secret');
+
+        // $receive_currency = $this->config->get('payment_spectrocoin_receive_currency');
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(self::MERCHANT_API_URL, $merchantId, $projectId, $this->log);
-        $client->setPrivateMerchantKey($privateKey);
-        $callback = $client->parseCreateOrderCallback($_REQUEST);
+        $client = new SCMerchantClient(self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
+
+        $post_data = [];
+		foreach ($expected_keys as $key) {
+			if (isset($_POST[$key])) {
+				$post_data[$key] = $_POST[$key]; //TODO gali buti kad $_REQUEST
+			}
+		}
+		$callback = $client->spectrocoin_process_callback($post_data);
+
         $order_id = $callback->getOrderId();
         $order = $this->model_checkout_order->getOrder($order_id);
         switch ($callback->getStatus()) {
-            case OrderStatusEnum::$Test:
+            case SpectroCoin_OrderStatusEnum::$Test:
                 break;
-            case OrderStatusEnum::$New:
+            case SpectroCoin_OrderStatusEnum::$New:
                 break;
-            case OrderStatusEnum::$Pending:
+            case SpectroCoin_OrderStatusEnum::$Pending:
                 $this->model_checkout_order->addOrderHistory($order_id, 2); // 2 - Processing
                 break;
-            case OrderStatusEnum::$Expired:
+            case SpectroCoin_OrderStatusEnum::$Expired:
                 $this->model_checkout_order->addOrderHistory($order_id, 14); // 14 - Expired
                 break;
-            case OrderStatusEnum::$Failed:
+            case SpectroCoin_OrderStatusEnum::$Failed:
                 $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
                 break;
-            case OrderStatusEnum::$Paid:
+            case SpectroCoin_OrderStatusEnum::$Paid:
                 $this->model_checkout_order->addOrderHistory($order_id, 15); // 15 - Processed
                 break;
             default:
@@ -157,7 +178,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         echo '*ok*';
     }
 
-    public function apierror($response) {
+    public function api_error($response) {
 
         $template = 'extension/spectrocoin/payment/spectrocoin_api_error';
         $data['css_path'] = 'extension/spectrocoin/catalog/view/stylesheet/spectrocoin_api_error.css';
@@ -165,12 +186,12 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $data['error_code'] = $response->getCode();
         $data['error_message'] = $response->getMessage();
         $data['shop_link'] = $this->config->get('config_url');
-        $data['error_causes'] = $this->getCausesByErrorCode($response->getCode());
+        $data['error_causes'] = $this->get_causes_by_error_code($response->getCode());
 
         $this->response->setOutput($this->load->view($template, $data));
     }
 
-    public function getCausesByErrorCode($errorCode){
+    public function get_causes_by_error_code($errorCode){
         switch ($errorCode) {
             case 2:
                 return '<li>Check your private key</li>';
@@ -192,4 +213,15 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
                 break;
         }
     }
+
+    /**
+	 * Generate random string
+	 * @param int $length
+	 * @return string
+	 */
+	private function random_str($length)
+	{
+		return substr(md5(rand(1, pow(2, 16))), 0, $length);
+	}
+
 }

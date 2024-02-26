@@ -5,9 +5,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 {
     private $error = array();
     private $langs = array('heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_all_zones', 'text_none',
-        'text_yes', 'text_no', 'text_off', 'entry_project', 'entry_merchant', 'entry_sign', 'entry_lang', 'help_lang', 'entry_test',
+        'text_yes', 'text_no', 'text_off', 'entry_project', 'entry_client_id', 'entry_client_secret', 'entry_sign', 'entry_lang', 'help_lang', 'entry_test',
         'entry_order_status', 'entry_geo_zone', 'entry_receive_currency', 'entry_status', 'entry_default_payments', 'entry_display_payments',
-        'entry_sort_order', 'help_callback', 'button_save', 'button_cancel', 'tab_general', 'entry_private_key', 'text_default_title', 'entry_title',
+        'entry_sort_order', 'help_callback', 'button_save', 'button_cancel', 'tab_general', 'text_default_title', 'entry_title',
         'text_spectrocoin', 'help_private' , 'info_heading', 'info_desc', 'info_step_1', 'info_step_2', 'info_step_3', 
         'info_step_4', 'info_step_5', 'info_step_6', 'info_step_7', 'info_step_8', 'info_step_9', 'info_note', 'status_checkbox_label', 'help_merchant', 'help_project', 'help_status'
     );
@@ -18,7 +18,6 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
         $this->document->addStyle('view/stylesheet/spectrocoin.css');
-        //...
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
             $privateKey = isset($this->request->post['spectrocoin_private_key']) ? $this->request->post['spectrocoin_private_key'] : $this->config->get('spectrocoin_private_key');
     

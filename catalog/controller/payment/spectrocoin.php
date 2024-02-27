@@ -186,32 +186,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $data['error_code'] = $response->getCode();
         $data['error_message'] = $response->getMessage();
         $data['shop_link'] = $this->config->get('config_url');
-        $data['error_causes'] = $this->get_causes_by_error_code($response->getCode());
 
         $this->response->setOutput($this->load->view($template, $data));
-    }
-
-    public function get_causes_by_error_code($errorCode){
-        switch ($errorCode) {
-            case 2:
-                return '<li>Check your private key</li>';
-                break;
-            case 3:
-                return '<li>Your shop FIAT currency is not supported by SpectroCoin, change it if possible</li>';
-                break;
-            case 6:
-                return '<li>Check your merchantApiId and projectId</li>';
-                break;
-            case 99:
-                return '<li>Incorrect url</li>
-                <li>Incorrect Parameters or Data Format</li>
-                <li>Required Parameters Missing</li>
-                <li>Unsupported currency</li>';
-                break;
-            default:
-                return '';
-                break;
-        }
     }
 
     /**

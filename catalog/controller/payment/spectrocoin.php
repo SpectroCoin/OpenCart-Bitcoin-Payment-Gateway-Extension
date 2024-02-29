@@ -11,7 +11,6 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 	const MERCHANT_API_URL = 'https://test.spectrocoin.com/api/public';
     const AUTH_URL = 'https://test.spectrocoin.com/api/public/oauth/token';
     var $time = 600;
-    protected $client = null;
 
     public function index()
     {
@@ -142,7 +141,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;
         }
-        $client = new SCMerchantClient(self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
+        $client = new SCMerchantClient($this->registry, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
 
         $post_data = [];
 		foreach ($expected_keys as $key) {

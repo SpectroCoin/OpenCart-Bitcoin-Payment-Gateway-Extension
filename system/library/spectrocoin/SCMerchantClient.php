@@ -20,16 +20,16 @@ require __DIR__ . '/../../../vendor/autoload.php';
 
 class SCMerchantClient
 {
+	private $registry;
 
 	private $merchant_api_url;
 	private $project_id;
 	private $client_id;
 	private $client_secret;
 	private $auth_url;
+	private $encryption_key;
 	
 	private $access_token_data;
-	private $encryption_key;
-	private $access_token_transient_key;
 	private $public_spectrocoin_cert_location;
 	protected $guzzle_client;
 
@@ -40,8 +40,10 @@ class SCMerchantClient
 	 * @param $client_secret
 	 * @param $auth_url
 	 */
-	function __construct($merchant_api_url, $project_id, $client_id, $client_secret, $auth_url)
+	function __construct($registry, $merchant_api_url, $project_id, $client_id, $client_secret, $auth_url)
 	{
+		$this->registry = $registry;
+
 		$this->merchant_api_url = $merchant_api_url;
 		$this->project_id = $project_id;
 		$this->client_id = $client_id;
@@ -49,9 +51,24 @@ class SCMerchantClient
 		$this->auth_url = $auth_url;
 
 		$this->guzzle_client = new Client();
-		$this->encryption_key = hash('sha256', AUTH_KEY . SECURE_AUTH_KEY . LOGGED_IN_KEY . NONCE_KEY);
-		$this->access_token_transient_key = "spectrocoin_transient_key";
 		$this->public_spectrocoin_cert_location = "https://test.spectrocoin.com/public.pem"; //PROD:https://spectrocoin.com/files/merchant.public.pem
+
+
+		// Construct a unique key using a combination of OpenCart's unique values
+		 $uniqueKeyParts = [
+			$this->registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
+			DB_PREFIX, // Database prefix
+		];
+	
+		// Ensure all parts are non-empty
+		$uniqueKeyParts = array_filter($uniqueKeyParts, function($value) { return !empty($value); });
+	
+		// Generate a hash as the encryption key
+		if (!empty($uniqueKeyParts)) {
+			$this->encryption_key = hash('sha256', implode(':', $uniqueKeyParts));
+		} else {
+			throw new Exception('Failed to generate a unique encryption key.');
+		}
 	}
 
 	/**
@@ -79,9 +96,9 @@ class SCMerchantClient
 			"payCurrencyCode" => $request->getPayCurrencyCode(),
 			"receiveAmount" => $request->getReceiveAmount(),
 			"receiveCurrencyCode" => $request->getReceiveCurrencyCode(),
-			'callbackUrl' => $request->getCallbackUrl(),
-			'successUrl' => $request->getSuccessUrl(),
-			'failureUrl' => $request->getFailureUrl()
+			'callbackUrl' => 'http://localhost.com',
+			'successUrl' => 'http://localhost.com',
+			'failureUrl' => 'http://localhost.com'
 		];
 
 		$sanitized_payload = $this->spectrocoin_sanitize_create_order_payload($payload);
@@ -178,27 +195,27 @@ class SCMerchantClient
 	 * @return array|null Returns the access token data array if the token is valid or has been refreshed successfully. Returns null if the token is not present and cannot be refreshed.
 	 */
 	private function spectrocoin_get_access_token_data() {
-        $currentTime = time();
-		$encrypted_access_token_data = get_transient($this->access_token_transient_key);
+        $current_time = time();
+		$encrypted_access_token_data = $this->retrieve_encrypted_data();
 		if ($encrypted_access_token_data) {
-			$access_token_data = json_decode(SpectroCoin_Utilities::spectrocoin_decrypt_auth_data($encrypted_access_token_data, $this->encryption_key), true);
-			$this->access_token_data = $access_token_data;
-			if ($this->spectrocoin_is_token_valid($currentTime)) {
+			$decrypted_data = SpectroCoin_Utilities::spectrocoin_decrypt_auth_data($encrypted_access_token_data, $this->encryption_key);
+			$this->access_token_data = $decrypted_data;
+			if ($this->spectrocoin_is_token_valid($current_time)) {
 				return $this->access_token_data;
 			}
 		}
-        return $this->spectrocoin_refresh_access_token($currentTime);
+        return $this->spectrocoin_refresh_access_token($current_time);
     }
 
 	/**
 	 * Refreshes the access token by making a request to the SpectroCoin authorization server using client credentials. If successful, it updates the stored token data in WordPress transients.
 	 * This method ensures that the application always has a valid token for authentication with SpectroCoin services.
 	 *
-	 * @param int $currentTime The current timestamp, used to calculate the new expiration time for the refreshed token.
+	 * @param int $current_time The current timestamp, used to calculate the new expiration time for the refreshed token.
 	 * @return array|null Returns the new access token data if the refresh operation is successful. Returns null if the operation fails due to a network error or invalid response from the server.
 	 * @throws GuzzleException Thrown if there is an error in the HTTP request to the SpectroCoin authorization server.
 	 */
-    private function spectrocoin_refresh_access_token($currentTime) {
+    private function spectrocoin_refresh_access_token($current_time) {
 		try {
 			$response = $this->guzzle_client->post($this->auth_url, [
 				'form_params' => [
@@ -213,14 +230,11 @@ class SCMerchantClient
 				return new SpectroCoin_ApiError('Invalid access token response', 'No valid response received.');
 			}
 	
-			// Delete the old transient before setting a new one
-			delete_transient($this->access_token_transient_key);
-	
-			$data['expires_at'] = $currentTime + $data['expires_in'];
+			$data['expires_at'] = $current_time + $data['expires_in'];
 			$encrypted_access_token_data = SpectroCoin_Utilities::spectrocoin_encrypt_auth_data(json_encode($data), $this->encryption_key);
 	
-			// Set the new transient with the refreshed token
-			set_transient($this->access_token_transient_key, $encrypted_access_token_data, $data['expires_in']);
+			$this->store_encrypted_data($encrypted_access_token_data);
+
 	
 			$this->access_token_data = $data;
 			return $this->access_token_data;
@@ -233,11 +247,35 @@ class SCMerchantClient
 	/**
 	 * Checks if the current access token is valid by comparing the current time against the token's expiration time. A buffer can be applied to ensure the token is refreshed before it actually expires.
 	 *
-	 * @param int $currentTime The current timestamp, typically obtained using `time()`.
+	 * @param int $current_time The current timestamp, typically obtained using `time()`.
 	 * @return bool Returns true if the token is valid (i.e., not expired), false otherwise.
 	 */
-	private function spectrocoin_is_token_valid($currentTime) {
-		return isset($this->access_token_data['expires_at']) && $currentTime < $this->access_token_data['expires_at'];
+	private function spectrocoin_is_token_valid($current_time) {
+		return isset($this->access_token_data['expires_at']) && $current_time < $this->access_token_data['expires_at'];
+	}
+
+	/**
+	 * Stores encrypted data in the OpenCart settings under a key derived from the encryption key.
+	 * This method leverages OpenCart's settings API to persist encrypted data, ensuring it's securely stored
+	 * and retrievable across sessions. The setting key is hashed from the encryption key to provide uniqueness
+	 * and an additional layer of obfuscation.
+	 *
+	 * @param string $encrypted_access_token_data The encrypted data to be stored.
+	 */
+	private function store_encrypted_data($encrypted_access_token_data) {
+		$this->registry->get('load')->model('setting/setting');
+		$this->registry->get('model_setting_setting')->editSettingValue('spectrocoin', $this->encryption_key, $encrypted_access_token_data);
+	}
+
+	/**
+	 * Retrieves encrypted data stored in the OpenCart settings, identified by a key derived from the encryption key.
+	 * This method accesses the OpenCart configuration system to fetch previously stored encrypted data.
+	 * The setting key is hashed from the encryption key, ensuring consistency in data retrieval.
+	 *
+	 * @return string|null The encrypted data retrieved from the settings, or null if the key does not exist.
+	 */
+	private function retrieve_encrypted_data() {
+		return $this->registry->get('config')->get($this->encryption_key);
 	}
 
 	// --------------- VALIDATION AND SANITIZATION BEFORE REQUEST -----------------

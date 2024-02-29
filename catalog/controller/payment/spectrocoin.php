@@ -66,7 +66,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $callback_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
         $success_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
         $failure_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
-        $client = new SCMerchantClient(self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
+        $client = new SCMerchantClient($this->registry, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(
             $order_id . "-" . $this->random_str(5),
             $description,

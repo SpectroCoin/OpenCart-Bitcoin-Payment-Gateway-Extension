@@ -41,8 +41,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
         $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_title');
         $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_project');
-        $this->loadFromRequestOrFromConfig($data, 'payment_client_id');
-        $this->loadFromRequestOrFromConfig($data, 'payment_client_secret');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_client_id');
+        $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_client_secret');
         $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_status');
         $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_sort_order');
         $data['callback'] = HTTP_CATALOG . 'index.php?route=payment/spectrocoin/callback';

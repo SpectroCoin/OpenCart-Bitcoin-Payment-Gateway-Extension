@@ -33,22 +33,27 @@
                 <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-spectrocoin" class="form-horizontal">
 
                     <div class="form-group">
+                        <label class="col-sm-2 control-label" for="entry_title">{{ entry_title }}</label>
                         <input type="text" name="payment_spectrocoin_title" value="{{ text_default_title }}" class="form-control" />
                     </div>
 
                     <div class="form-group required">
+                        <label class="col-sm-2 control-label" for="entry_project">{{ entry_project }}</label>
                         <input type="text" name="payment_spectrocoin_project" value="{{ payment_spectrocoin_project }}" class="form-control" />
                     </div>
 
                     <div class="form-group required">
+                        <label class="col-sm-2 control-label" for="entry_client_id">{{ entry_client_id }}</label>
                         <input type="text" name="payment_client_id" value="{{ payment_client_id }}" class="form-control" />
                     </div>
 
                     <div class="form-group required">
+                        <label class="col-sm-2 control-label" for="entry_client_secret">{{ entry_client_secret }}</label>
                         <input type="text" name="payment_client_secret" value="{{ payment_client_secret }}" class="form-control" />
                     </div>
 
                     <div class="form-group">
+                        <label class="col-sm-2 control-label" for="entry_status">{{ entry_status }}</label>
                         <div class="form-check form-switch">
                             <input id = "status-switch" type="checkbox" name="payment_spectrocoin_status" class="form-check-input" value="1" {% if payment_spectrocoin_status == 1 %}checked="checked"{% endif %}>
                         </div>
@@ -77,6 +82,7 @@
                             <li>{{info_step_7}}</li>
                             <li>{{info_step_8}}</li>
                             <li>{{info_step_9}}</li>
+                            <li>{{info_step_10}}</li>
                         </ul>
                         
                         <p>{{info_note}}</p>

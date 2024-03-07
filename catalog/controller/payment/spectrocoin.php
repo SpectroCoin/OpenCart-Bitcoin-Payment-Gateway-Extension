@@ -145,8 +145,8 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
         $post_data = [];
 		foreach ($expected_keys as $key) {
-			if (isset($_POST[$key])) {
-				$post_data[$key] = $_POST[$key]; //TODO gali buti kad $_REQUEST
+			if (isset($_REQUEST[$key])) {
+				$post_data[$key] = $_REQUEST[$key]; //TODO gali buti kad $_POST
 			}
 		}
 		$callback = $client->spectrocoin_process_callback($post_data);

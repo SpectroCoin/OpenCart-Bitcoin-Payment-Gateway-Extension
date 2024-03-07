@@ -34,9 +34,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
     public function confirm()
     {
-        $project_id = $this->config->get('payment_spectrocoin_merchant');
-        $client_id = $this->config->get('payment_client_id');
-        $client_secret = $this->config->get('payment_client_secret');
+        $project_id = $this->config->get('payment_spectrocoin_project');
+        $client_id = $this->config->get('payment_spectrocoin_client_id');
+        $client_secret = $this->config->get('payment_spectrocoin_client_secret');
         
         if (!$project_id || !$client_id || !$client_secret) {
             $this->log->write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
@@ -139,10 +139,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $expected_keys = ['userId', 'merchantApiId', 'merchantId', 'apiId', 'orderId', 'payCurrency', 'payAmount', 'receiveCurrency', 'receiveAmount', 'receivedAmount', 'description', 'orderRequestId', 'status', 'sign'];
 
         $project_id = $this->config->get('payment_spectrocoin_project');
-        $client_id = $this->config->get('payment_client_id');
-        $client_secret = $this->config->get('payment_client_secret');
+        $client_id = $this->config->get('payment_spectrocoin_client_id');
+        $client_secret = $this->config->get('payment_spectrocoin_client_secret');
 
-        // $receive_currency = $this->config->get('payment_spectrocoin_receive_currency');
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             exit;

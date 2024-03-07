@@ -287,16 +287,16 @@ class SCMerchantClient
      */
     private function spectrocoinSanitizeOrderPayload($payload) {
 		$sanitized_payload = [
-			'orderId' => sanitize_text_field($payload['orderId']),
-			'projectId' => sanitize_text_field($payload['projectId']), // Assuming you need to sanitize this as well
-			'description' => sanitize_text_field($payload['description']),
-			'payAmount' => filter_var($payload['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'payCurrencyCode' => sanitize_text_field($payload['payCurrencyCode']),
-			'receiveAmount' => filter_var($payload['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'receiveCurrencyCode' => sanitize_text_field($payload['receiveCurrencyCode']),
-			'callbackUrl' => filter_var($payload['callbackUrl'], FILTER_SANITIZE_URL),
-			'successUrl' => filter_var($payload['successUrl'], FILTER_SANITIZE_URL),
-			'failureUrl' => filter_var($payload['failureUrl'], FILTER_SANITIZE_URL),
+			'orderId' => htmlspecialchars(trim($payload['orderId'])), // Removes any HTML tags and trims whitespace
+			'projectId' => htmlspecialchars(trim($payload['projectId'])), // Removes any HTML tags and trims whitespace
+			'description' => htmlspecialchars(trim($payload['description'])), // Removes any HTML tags and trims whitespace
+			'payAmount' => filter_var($payload['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
+			'payCurrencyCode' => htmlspecialchars(trim($payload['payCurrencyCode'])), // Removes any HTML tags and trims whitespace
+			'receiveAmount' => filter_var($payload['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
+			'receiveCurrencyCode' => htmlspecialchars(trim($payload['receiveCurrencyCode'])), // Removes any HTML tags and trims whitespace
+			'callbackUrl' => filter_var($payload['callbackUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
+			'successUrl' => filter_var($payload['successUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
+			'failureUrl' => filter_var($payload['failureUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
 		];
 		return $sanitized_payload;
     }
@@ -359,20 +359,20 @@ class SCMerchantClient
 	 */
 	public function spectrocoinSanitizeCallback($post_data) {
 		return [
-            'userId' => sanitize_text_field($post_data['userId']),
-			'merchantApiId' => sanitize_text_field($post_data['merchantApiId']),
-            'merchantId' => sanitize_text_field($post_data['merchantId']),
-            'apiId' => sanitize_text_field($post_data['apiId']),
-			'orderId' => sanitize_text_field($post_data['orderId']),
-			'payCurrencyCode' => sanitize_text_field($post_data['payCurrencyCode']),
+			'userId' => htmlspecialchars(trim($post_data['userId'])),
+			'merchantApiId' => htmlspecialchars(trim($post_data['merchantApiId'])),
+			'merchantId' => htmlspecialchars(trim($post_data['merchantId'])),
+			'apiId' => htmlspecialchars(trim($post_data['apiId'])),
+			'orderId' => htmlspecialchars(trim($post_data['orderId'])),
+			'payCurrencyCode' => htmlspecialchars(trim($post_data['payCurrencyCode'])),
 			'payAmount' => filter_var($post_data['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'receiveCurrencyCode' => sanitize_text_field($post_data['receiveCurrencyCode']),
+			'receiveCurrencyCode' => htmlspecialchars(trim($post_data['receiveCurrencyCode'])),
 			'receiveAmount' => filter_var($post_data['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
 			'receivedAmount' => filter_var($post_data['receivedAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'description' => sanitize_text_field($post_data['description']),
+			'description' => htmlspecialchars(trim($post_data['description'])),
 			'orderRequestId' => filter_var($post_data['orderRequestId'], FILTER_SANITIZE_NUMBER_INT),
-			'status' => sanitize_text_field($post_data['status']),
-			'sign' => sanitize_text_field($post_data['sign']),
+			'status' => htmlspecialchars(trim($post_data['status'])),
+			'sign' => htmlspecialchars(trim($post_data['sign'])),
 		];
 	}
 

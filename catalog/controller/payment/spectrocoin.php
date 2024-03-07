@@ -62,9 +62,15 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $order_id = $order['order_id'];
         $description = "Order #{$order_id}";
-        $callback_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
-        $success_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
-        $failure_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
+
+        $ngrok_test_url = "https://3a0c-88-119-150-219.ngrok-free.app";
+
+        //TESTING TO-DO: change back to HTTP_SERVER
+        $callback_url = $ngrok_test_url . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
+        $success_url = $ngrok_test_url . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
+        $failure_url = $ngrok_test_url . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
+
+
         $client = new SCMerchantClient($this->registry, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(
             $order_id . "-" . $this->random_str(5),

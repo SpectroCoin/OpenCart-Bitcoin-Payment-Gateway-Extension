@@ -67,7 +67,10 @@
                 </div>
                 <div class = "flex-right">
                     <div class = "white-card">
-                        <a class = "spectrocoin-logo-link" target="_blank" href="http://www.spectrocoin.com"><img class = "spectrocoin-logo" src="view/image/payment/spectrocoin-logo.svg" alt="SpectroCoin" title="SpectroCoin" /></a>
+                        <a class="spectrocoin-logo-link" target="_blank" href="http://www.spectrocoin.com">
+                            <img class="spectrocoin-logo" src="{{ spectrocoin_logo }}" alt="SpectroCoin" title="SpectroCoin"/>
+                        </a>
+
                         <h4>{{ info_heading }}</h4>
 
                         <p>{{info_desc}}</p>
@@ -94,5 +97,5 @@
 
     </div>
 </div>
-
+{{ spectrocoin_css|raw }}
 <?php echo $footer; ?>

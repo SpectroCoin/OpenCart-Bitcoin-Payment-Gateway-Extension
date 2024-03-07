@@ -17,7 +17,6 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->load->language('extension/spectrocoin/payment/spectrocoin');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
-        $this->document->addStyle('view/stylesheet/spectrocoin.css');
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {    
             if ($this->validate()) {
                 $this->load->model('setting/setting');
@@ -48,6 +47,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $this->loadFromRequestOrFromConfig($data, 'payment_spectrocoin_sort_order');
         $data['callback'] = HTTP_CATALOG . 'index.php?route=payment/spectrocoin/callback';
         $data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+
+        $data['spectrocoin_css'] = '<link href="' . HTTP_CATALOG . 'extension/spectrocoin/admin/view/stylesheet/spectrocoin.css" rel="stylesheet" type="text/css" />';
+        $data['spectrocoin_logo'] = HTTP_CATALOG . 'extension/spectrocoin/admin/view/image/payment/spectrocoin-logo.svg';
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');

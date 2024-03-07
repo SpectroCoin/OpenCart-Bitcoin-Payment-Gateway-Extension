@@ -77,7 +77,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
             $success_url, 
             $failure_url
         );
-        $response = $client->spectrocoin_create_order($order_request);
+        $response = $client->spectrocoinCreateOrder($order_request);
         if ($response instanceof SpectroCoin_ApiError) {
             $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
             $this->api_error($response); 
@@ -149,7 +149,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 				$post_data[$key] = $_REQUEST[$key]; //TODO gali buti kad $_POST
 			}
 		}
-		$callback = $client->spectrocoin_process_callback($post_data);
+		$callback = $client->spectrocoinProcessCallback($post_data);
 
         $order_id = $callback->getOrderId();
         $order = $this->model_checkout_order->getOrder($order_id);

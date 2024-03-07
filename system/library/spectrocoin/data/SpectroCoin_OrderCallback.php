@@ -90,7 +90,7 @@ class SpectroCoin_OrderCallback
 	 */
 	public function getPayAmount()
 	{
-		return SpectroCoin_Utilities::spectrocoin_format_currency($this->payAmount == null ? 0.0 : $this->payAmount);
+		return SpectroCoin_Utilities::spectrocoinFormatCurrency($this->payAmount == null ? 0.0 : $this->payAmount);
 	}
 
 	/**
@@ -106,7 +106,7 @@ class SpectroCoin_OrderCallback
 	 */
 	public function getReceiveAmount()
 	{
-		return SpectroCoin_Utilities::spectrocoin_format_currency($this->receiveAmount == null ? 0.0 : $this->receiveAmount);
+		return SpectroCoin_Utilities::spectrocoinFormatCurrency($this->receiveAmount == null ? 0.0 : $this->receiveAmount);
 	}
 
 	/**
@@ -114,7 +114,7 @@ class SpectroCoin_OrderCallback
 	 */
 	public function getReceivedAmount()
 	{
-		return SpectroCoin_Utilities::spectrocoin_format_currency($this->receivedAmount == null ? 0.0 : $this->receivedAmount);
+		return SpectroCoin_Utilities::spectrocoinFormatCurrency($this->receivedAmount == null ? 0.0 : $this->receivedAmount);
 	}
 
 	/**

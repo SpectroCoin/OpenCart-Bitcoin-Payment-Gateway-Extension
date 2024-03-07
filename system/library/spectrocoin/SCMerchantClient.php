@@ -81,9 +81,9 @@ class SCMerchantClient
 	 * @return SpectroCoin_ApiError|SpectroCoin_CreateOrderResponse The response object with order details or an error object.
 	 * @throws GuzzleException If there's an error in the HTTP request.
 	 */
-	public function spectrocoin_create_order(SpectroCoin_CreateOrderRequest $request)
+	public function spectrocoinCreateOrder(SpectroCoin_CreateOrderRequest $request)
 	{
-		$this->access_token_data = $this->spectrocoin_get_access_token_data();
+		$this->access_token_data = $this->spectrocoinGetAccessTokenData();
 		if (!$this->access_token_data) {
 			return new SpectroCoin_ApiError('AuthError', 'Failed to obtain or refresh access token');
 		}
@@ -101,8 +101,8 @@ class SCMerchantClient
 			'failureUrl' => 'http://localhost.com'
 		];
 
-		$sanitized_payload = $this->spectrocoin_sanitize_create_order_payload($payload);
-		if (!$this->spectrocoin_validate_create_order_payload($sanitized_payload)) {
+		$sanitized_payload = $this->spectrocoinSanitizeOrderPayload($payload);
+		if (!$this->spectrocoinValidateOrderPayload($sanitized_payload)) {
 			return new SpectroCoin_ApiError(-1, 'Invalid order creation payload');
 		}
 
@@ -134,7 +134,7 @@ class SCMerchantClient
 
 		} catch (RequestException $e) {
 			if ($e->getResponse() && $e->getResponse()->getStatusCode() == 403) {
-				$this->access_token_data = $this->spectrocoin_refresh_access_token(time());
+				$this->access_token_data = $this->spectrocoinRefreshAccessToken(time());
 
 				if (!$this->access_token_data) {
 					return new SpectroCoin_ApiError('AuthError', 'Failed to refresh access token');
@@ -194,17 +194,17 @@ class SCMerchantClient
 	 *
 	 * @return array|null Returns the access token data array if the token is valid or has been refreshed successfully. Returns null if the token is not present and cannot be refreshed.
 	 */
-	private function spectrocoin_get_access_token_data() {
+	private function spectrocoinGetAccessTokenData() {
         $current_time = time();
-		$encrypted_access_token_data = $this->retrieve_encrypted_data();
+		$encrypted_access_token_data = $this->retrieveEncryptedData();
 		if ($encrypted_access_token_data) {
-			$decrypted_data = SpectroCoin_Utilities::spectrocoin_decrypt_auth_data($encrypted_access_token_data, $this->encryption_key);
+			$decrypted_data = SpectroCoin_Utilities::spectrocoinDecryptAuthData($encrypted_access_token_data, $this->encryption_key);
 			$this->access_token_data = $decrypted_data;
-			if ($this->spectrocoin_is_token_valid($current_time)) {
+			if ($this->spectrocoinIsTokenValid($current_time)) {
 				return $this->access_token_data;
 			}
 		}
-        return $this->spectrocoin_refresh_access_token($current_time);
+        return $this->spectrocoinRefreshAccessToken($current_time);
     }
 
 	/**
@@ -215,7 +215,7 @@ class SCMerchantClient
 	 * @return array|null Returns the new access token data if the refresh operation is successful. Returns null if the operation fails due to a network error or invalid response from the server.
 	 * @throws GuzzleException Thrown if there is an error in the HTTP request to the SpectroCoin authorization server.
 	 */
-    private function spectrocoin_refresh_access_token($current_time) {
+    private function spectrocoinRefreshAccessToken($current_time) {
 		try {
 			$response = $this->guzzle_client->post($this->auth_url, [
 				'form_params' => [
@@ -231,9 +231,9 @@ class SCMerchantClient
 			}
 	
 			$data['expires_at'] = $current_time + $data['expires_in'];
-			$encrypted_access_token_data = SpectroCoin_Utilities::spectrocoin_encrypt_auth_data(json_encode($data), $this->encryption_key);
+			$encrypted_access_token_data = SpectroCoin_Utilities::spectrocoinEncryptAuthData(json_encode($data), $this->encryption_key);
 	
-			$this->store_encrypted_data($encrypted_access_token_data);
+			$this->storeEncryptedData($encrypted_access_token_data);
 
 	
 			$this->access_token_data = $data;
@@ -250,7 +250,7 @@ class SCMerchantClient
 	 * @param int $current_time The current timestamp, typically obtained using `time()`.
 	 * @return bool Returns true if the token is valid (i.e., not expired), false otherwise.
 	 */
-	private function spectrocoin_is_token_valid($current_time) {
+	private function spectrocoinIsTokenValid($current_time) {
 		return isset($this->access_token_data['expires_at']) && $current_time < $this->access_token_data['expires_at'];
 	}
 
@@ -262,7 +262,7 @@ class SCMerchantClient
 	 *
 	 * @param string $encrypted_access_token_data The encrypted data to be stored.
 	 */
-	private function store_encrypted_data($encrypted_access_token_data) {
+	private function storeEncryptedData($encrypted_access_token_data) {
 		$this->registry->get('load')->model('setting/setting');
 		$this->registry->get('model_setting_setting')->editSettingValue('spectrocoin', $this->encryption_key, $encrypted_access_token_data);
 	}
@@ -274,7 +274,7 @@ class SCMerchantClient
 	 *
 	 * @return string|null The encrypted data retrieved from the settings, or null if the key does not exist.
 	 */
-	private function retrieve_encrypted_data() {
+	private function retrieveEncryptedData() {
 		return $this->registry->get('config')->get($this->encryption_key);
 	}
 
@@ -285,7 +285,7 @@ class SCMerchantClient
      * @param array $payload
      * @return array
      */
-    private function spectrocoin_sanitize_create_order_payload($payload) {
+    private function spectrocoinSanitizeOrderPayload($payload) {
 		$sanitized_payload = [
 			'orderId' => sanitize_text_field($payload['orderId']),
 			'projectId' => sanitize_text_field($payload['projectId']), // Assuming you need to sanitize this as well
@@ -306,7 +306,7 @@ class SCMerchantClient
      * @param array $sanitized_payload
      * @return bool
      */
-	private function spectrocoin_validate_create_order_payload($sanitized_payload) {
+	private function spectrocoinValidateOrderPayload($sanitized_payload) {
 		return isset(
 			$sanitized_payload['orderId'],
 			$sanitized_payload['projectId'],
@@ -337,13 +337,13 @@ class SCMerchantClient
 	 * @param $post_data
 	 * @return SpectroCoin_OrderCallback|null
 	 */
-	public function spectrocoin_process_callback($post_data) {
+	public function spectrocoinProcessCallback($post_data) {
 		if ($post_data != null) {
-			$sanitized_data = $this->spectrocoin_sanitize_callback($post_data);
-			$is_valid = $this->spectrocoin_validate_callback($sanitized_data);
+			$sanitized_data = $this->spectrocoinSanitizeCallback($post_data);
+			$is_valid = $this->spectrocoinValidateCallback($sanitized_data);
 			if ($is_valid) {
 				$order_callback = new SpectroCoin_OrderCallback($sanitized_data['userId'], $sanitized_data['merchantApiId'], $sanitized_data['merchantId'], $sanitized_data['apiId'], $sanitized_data['orderId'], $sanitized_data['payCurrencyCode'], $sanitized_data['payAmount'], $sanitized_data['receiveCurrencyCode'], $sanitized_data['receiveAmount'], $sanitized_data['receivedAmount'], $sanitized_data['description'], $sanitized_data['orderRequestId'], $sanitized_data['status'], $sanitized_data['sign']);
-				if ($this->spectrocoin_validate_callback_payload($order_callback)) {
+				if ($this->spectrocoinValidateCallbackPayload($order_callback)) {
 					return $order_callback;
 				}
 			}
@@ -357,7 +357,7 @@ class SCMerchantClient
 	 * @param $post_data
 	 * @return array
 	 */
-	public function spectrocoin_sanitize_callback($post_data) {
+	public function spectrocoinSanitizeCallback($post_data) {
 		return [
             'userId' => sanitize_text_field($post_data['userId']),
 			'merchantApiId' => sanitize_text_field($post_data['merchantApiId']),
@@ -381,7 +381,7 @@ class SCMerchantClient
 	 * @param $sanitized_data
 	 * @return bool
 	 */
-	public function spectrocoin_validate_callback($sanitized_data) {
+	public function spectrocoinValidateCallback($sanitized_data) {
 		$is_valid = true;
 		$failed_fields = [];
 
@@ -468,7 +468,7 @@ class SCMerchantClient
 	 * @param SpectroCoin_OrderCallback $order_callback
 	 * @return bool
 	 */
-	public function spectrocoin_validate_callback_payload(SpectroCoin_OrderCallback $order_callback)
+	public function spectrocoinValidateCallbackPayload(SpectroCoin_OrderCallback $order_callback)
 	{
 		if ($order_callback != null) {
 
@@ -487,7 +487,7 @@ class SCMerchantClient
 			);
 			
 			$data = http_build_query($payload);
-            if ($this->spectrocoin_validate_signature($data, $order_callback->getSign()) == 1) {
+            if ($this->spectrocoinValidateSignature($data, $order_callback->getSign()) == 1) {
 				return true;
 			} else {
 				error_log('SpectroCoin Error: Signature validation failed');
@@ -503,7 +503,7 @@ class SCMerchantClient
 	 * @param $signature
 	 * @return int
 	 */
-	private function spectrocoin_validate_signature($data, $signature)
+	private function spectrocoinValidateSignature($data, $signature)
 	{
 		$sig = base64_decode($signature);
 		$public_key = file_get_contents($this->public_spectrocoin_cert_location);

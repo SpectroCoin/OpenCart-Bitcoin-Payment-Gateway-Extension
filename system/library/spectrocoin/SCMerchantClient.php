@@ -21,6 +21,7 @@ require __DIR__ . '/../../../vendor/autoload.php';
 class SCMerchantClient
 {
 	private $registry;
+	private $session;
 
 	private $merchant_api_url;
 	private $project_id;
@@ -28,6 +29,7 @@ class SCMerchantClient
 	private $client_secret;
 	private $auth_url;
 	private $encryption_key;
+
 	
 	private $access_token_data;
 	private $public_spectrocoin_cert_location;
@@ -40,9 +42,10 @@ class SCMerchantClient
 	 * @param $client_secret
 	 * @param $auth_url
 	 */
-	function __construct($registry, $merchant_api_url, $project_id, $client_id, $client_secret, $auth_url)
+	function __construct($registry, $session, $merchant_api_url, $project_id, $client_id, $client_secret, $auth_url)
 	{
 		$this->registry = $registry;
+		$this->session = $session;
 
 		$this->merchant_api_url = $merchant_api_url;
 		$this->project_id = $project_id;
@@ -54,16 +57,13 @@ class SCMerchantClient
 		$this->public_spectrocoin_cert_location = "https://test.spectrocoin.com/public.pem"; //PROD:https://spectrocoin.com/files/merchant.public.pem
 
 
-		// Construct a unique key using a combination of OpenCart's unique values
 		 $uniqueKeyParts = [
 			$this->registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
 			DB_PREFIX, // Database prefix
 		];
 	
-		// Ensure all parts are non-empty
 		$uniqueKeyParts = array_filter($uniqueKeyParts, function($value) { return !empty($value); });
 	
-		// Generate a hash as the encryption key
 		if (!empty($uniqueKeyParts)) {
 			$this->encryption_key = hash('sha256', implode(':', $uniqueKeyParts));
 		} else {
@@ -87,6 +87,9 @@ class SCMerchantClient
 		if (!$this->access_token_data) {
 			return new SpectroCoin_ApiError('AuthError', 'Failed to obtain or refresh access token');
 		}
+		else if ($this->access_token_data instanceof SpectroCoin_ApiError) {
+			return $this->access_token_data;
+		}
 
 		$payload = [
 			"orderId" => $request->getOrderId(),
@@ -96,9 +99,9 @@ class SCMerchantClient
 			"payCurrencyCode" => $request->getPayCurrencyCode(),
 			"receiveAmount" => $request->getReceiveAmount(),
 			"receiveCurrencyCode" => $request->getReceiveCurrencyCode(),
-			'callbackUrl' => $request->getCallbackUrl(),
-			'successUrl' => $request->getSuccessUrl(),
-			'failureUrl' => $request->getFailureUrl()
+			'callbackUrl' => 'http://localhost.com',
+			'successUrl' => 'http://localhost.com',
+			'failureUrl' => 'http://localhost.com'
 		];
 
 		$sanitized_payload = $this->spectrocoinSanitizeOrderPayload($payload);
@@ -107,6 +110,8 @@ class SCMerchantClient
 		}
 
 		$json_payload = json_encode($sanitized_payload);
+		$test_data = $this->access_token_data;
+		$test = $this->access_token_data['access_token'];
 
 		try {
 			$response = $this->guzzle_client->request('POST', $this->merchant_api_url . '/merchants/orders/create', [
@@ -239,7 +244,7 @@ class SCMerchantClient
 			$this->access_token_data = $data;
 			return $this->access_token_data;
 		} catch (GuzzleException $e) {
-			return new SpectroCoin_ApiError('Failed to refresh access token', $e->getMessage());
+			return new SpectroCoin_ApiError('Failed to refresh access token. It is possible that when creating an API in SpectroCoin settings, you did not assign all merchant scopes.', $e->getMessage());
 		}
 	}
 
@@ -255,27 +260,24 @@ class SCMerchantClient
 	}
 
 	/**
-	 * Stores encrypted data in the OpenCart settings under a key derived from the encryption key.
-	 * This method leverages OpenCart's settings API to persist encrypted data, ensuring it's securely stored
-	 * and retrievable across sessions. The setting key is hashed from the encryption key to provide uniqueness
-	 * and an additional layer of obfuscation.
+	 * Stores encrypted authentication token data in the session.
 	 *
-	 * @param string $encrypted_access_token_data The encrypted data to be stored.
+	 * @param string $encrypted_access_token_data The encrypted token data to be stored.
 	 */
 	private function storeEncryptedData($encrypted_access_token_data) {
-		$this->registry->get('load')->model('setting/setting');
-		$this->registry->get('model_setting_setting')->editSettingValue('spectrocoin', $this->encryption_key, $encrypted_access_token_data);
+		$this->session->data['spectrocoin_auth_token'] = $encrypted_access_token_data;
 	}
 
 	/**
-	 * Retrieves encrypted data stored in the OpenCart settings, identified by a key derived from the encryption key.
-	 * This method accesses the OpenCart configuration system to fetch previously stored encrypted data.
-	 * The setting key is hashed from the encryption key, ensuring consistency in data retrieval.
+	 * Retrieves encrypted authentication token data from the session.
 	 *
-	 * @return string|null The encrypted data retrieved from the settings, or null if the key does not exist.
+	 * @return string|null The encrypted token data if it exists in the session, null otherwise.
 	 */
 	private function retrieveEncryptedData() {
-		return $this->registry->get('config')->get($this->encryption_key);
+		if (isset($this->session->data['spectrocoin_auth_token'])) {
+			return $this->session->data['spectrocoin_auth_token'];
+		}
+		return null;
 	}
 
 	// --------------- VALIDATION AND SANITIZATION BEFORE REQUEST -----------------

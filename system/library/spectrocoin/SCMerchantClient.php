@@ -84,6 +84,7 @@ class SCMerchantClient
 	public function spectrocoinCreateOrder(SpectroCoin_CreateOrderRequest $request)
 	{
 		$this->access_token_data = $this->spectrocoinGetAccessTokenData();
+		
 		if (!$this->access_token_data) {
 			return new SpectroCoin_ApiError('AuthError', 'Failed to obtain or refresh access token');
 		}
@@ -106,12 +107,10 @@ class SCMerchantClient
 
 		$sanitized_payload = $this->spectrocoinSanitizeOrderPayload($payload);
 		if (!$this->spectrocoinValidateOrderPayload($sanitized_payload)) {
-			return new SpectroCoin_ApiError(-1, 'Invalid order creation payload');
+            return new SpectroCoin_ApiError(-1, 'Invalid order creation payload, payload: ' . json_encode($sanitized_payload));
 		}
 
 		$json_payload = json_encode($sanitized_payload);
-		$test_data = $this->access_token_data;
-		$test = $this->access_token_data['access_token'];
 
 		try {
 			$response = $this->guzzle_client->request('POST', $this->merchant_api_url . '/merchants/orders/create', [
@@ -145,7 +144,7 @@ class SCMerchantClient
 					return new SpectroCoin_ApiError('AuthError', 'Failed to refresh access token');
 				}
 
-				return $this->retry_spectrocoin_create_order($json_payload);
+				return $this->SpectrocoinRetryOrder($json_payload);
 			} else {
 				return new SpectroCoin_ApiError($e->getCode(), $e->getMessage());
 			}
@@ -156,13 +155,13 @@ class SCMerchantClient
 		return new SpectroCoin_ApiError('UnknownError', 'An unknown error occurred during order creation');
 	}
 
-		/**
+	/**
 	 * Retries the order creation request with a refreshed token.
 	 *
 	 * @param string $json_payload The JSON-encoded payload for the order creation request.
 	 * @return SpectroCoin_ApiError|SpectroCoin_CreateOrderResponse The response object with order details or an error object.
 	 */
-	private function retry_spectrocoin_create_order($json_payload)
+	private function SpectrocoinRetryOrder($json_payload)
 	{
 		try {
 			$response = $this->guzzle_client->request('POST', $this->merchant_api_url . '/merchants/orders/create', [

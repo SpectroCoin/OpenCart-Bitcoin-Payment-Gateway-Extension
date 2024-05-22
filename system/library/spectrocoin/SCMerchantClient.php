@@ -124,17 +124,18 @@ class SCMerchantClient
 			$body = json_decode($response->getBody()->getContents(), true);
 
 			return new SpectroCoin_CreateOrderResponse(
-					$body['depositAddress'],
-					$body['memo'],
-					$body['orderId'],
-					$body['payAmount'],
-					$body['payCurrencyCode'],
-					$body['preOrderId'],
-					$body['receiveAmount'],
-					$body['receiveCurrencyCode'],
-					$body['redirectUrl'],
-					$body['validUntil']
-			);
+				$body['preOrderId'],
+				$body['orderId'],
+				$body['validUntil'],
+				$body['payCurrencyCode'],
+				$body['payNetworkCode'],
+				$body['receiveCurrencyCode'],
+				$body['payAmount'],
+				$body['receiveAmount'],
+				$body['depositAddress'],
+				$body['memo'],
+				$body['redirectUrl']
+		);
 
 		} catch (RequestException $e) {
 			if ($e->getResponse() && $e->getResponse()->getStatusCode() == 403) {
@@ -175,17 +176,18 @@ class SCMerchantClient
 			$body = json_decode($response->getBody()->getContents(), true);
 
 			return new SpectroCoin_CreateOrderResponse(
+				$body['preOrderId'],
+				$body['orderId'],
+				$body['validUntil'],
+				$body['payCurrencyCode'],
+				$body['payNetworkCode'],
+				$body['receiveCurrencyCode'],
+				$body['payAmount'],
+				$body['receiveAmount'],
 				$body['depositAddress'],
 				$body['memo'],
-				$body['orderId'],
-				$body['payAmount'],
-				$body['payCurrencyCode'],
-				$body['preOrderId'],
-				$body['receiveAmount'],
-				$body['receiveCurrencyCode'],
-				$body['redirectUrl'],
-				$body['validUntil']
-			);
+				$body['redirectUrl']
+		);
 
 		} catch (GuzzleException $e) {
 			return new SpectroCoin_ApiError($e->getCode(), $e->getMessage());

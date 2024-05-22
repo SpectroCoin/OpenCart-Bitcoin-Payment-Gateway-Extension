@@ -67,6 +67,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $success_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
         $failure_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
 
+        // $callback_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/callback';
+        // $success_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/accept';
+        // $failure_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
 
         $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(
@@ -134,28 +137,46 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
     public function callback() {
         $expected_keys = ['userId', 'merchantApiId', 'merchantId', 'apiId', 'orderId', 'payCurrency', 'payAmount', 'receiveCurrency', 'receiveAmount', 'receivedAmount', 'description', 'orderRequestId', 'status', 'sign'];
-
+    
         $project_id = $this->config->get('payment_spectrocoin_project');
         $client_id = $this->config->get('payment_spectrocoin_client_id');
         $client_secret = $this->config->get('payment_spectrocoin_client_secret');
-
+    
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            $this->log->write('SpectroCoin Callback: Invalid request method');
             exit;
         }
+        
         $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
-
+    
         $post_data = [];
-		foreach ($expected_keys as $key) {
-			if (isset($_REQUEST[$key])) {
-				$post_data[$key] = $_REQUEST[$key]; //TODO gali buti kad $_POST
-			}
-		}
-		$callback = $client->spectrocoinProcessCallback($post_data);
-
+        foreach ($expected_keys as $key) {
+            if (isset($_POST[$key])) {
+                $post_data[$key] = $_POST[$key]; // TODO: could be $_POST
+            }
+        }
+    
+        $this->log->write('SpectroCoin Callback: Received data - ' . json_encode($post_data));
+    
+        $callback = $client->spectrocoinProcessCallback($post_data);
+        if (!$callback) {
+            $this->log->write('SpectroCoin Callback: Invalid callback data');
+            exit;
+        }
+    
         $order_id = $callback->getOrderId();
         $order = $this->model_checkout_order->getOrder($order_id);
-        switch ($callback->getStatus()) {
+    
+        if (!$order) {
+            $this->log->write('SpectroCoin Callback: Order not found - Order ID: ' . $order_id);
+            exit;
+        }
+    
+        $status = $callback->getStatus();
+        $this->log->write('SpectroCoin Callback: Order ID ' . $order_id . ' - Status: ' . $status);
+    
+        switch ($status) {
             case SpectroCoin_OrderStatusEnum::$Test:
                 break;
             case SpectroCoin_OrderStatusEnum::$New:
@@ -173,11 +194,14 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
                 $this->model_checkout_order->addOrderHistory($order_id, 15); // 15 - Processed
                 break;
             default:
-                echo 'Unknown order status: ' . $callback->getStatus();
+                $this->log->write('SpectroCoin Callback: Unknown order status - ' . $status);
+                echo 'Unknown order status: ' . $status;
                 exit;
         }
+    
         echo '*ok*';
     }
+    
 
     public function api_error($response) {
 

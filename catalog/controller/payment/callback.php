@@ -11,8 +11,6 @@ class Callback extends \Opencart\System\Engine\Controller
 
     public function index()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', '1');
         $expected_keys = ['userId', 'merchantApiId', 'merchantId', 'apiId', 'orderId', 'payCurrency', 'payAmount', 'receiveCurrency', 'receiveAmount', 'receivedAmount', 'description', 'orderRequestId', 'status', 'sign'];
 
         $project_id = $this->config->get('payment_spectrocoin_project');
@@ -34,9 +32,10 @@ class Callback extends \Opencart\System\Engine\Controller
             }
         }
 
-        $this->log->write('SpectroCoin Callback: Received data - ' . json_encode($post_data));
+        $this->log->write('Callback data BEFORE processing - ' . json_encode($post_data));
 
         $callback = $client->spectrocoinProcessCallback($post_data);
+        $this->log->write('Callback data AFTER processing - ' . json_encode($post_data));
         if (!$callback) {
             $this->log->write('SpectroCoin Callback: Invalid callback data');
             exit;
@@ -54,8 +53,6 @@ class Callback extends \Opencart\System\Engine\Controller
         $this->log->write('SpectroCoin Callback: Order ID ' . $order_id . ' - Status: ' . $status);
 
         switch ($status) {
-            case SpectroCoin_OrderStatusEnum::$Test:
-                break;
             case SpectroCoin_OrderStatusEnum::$New:
                 break;
             case SpectroCoin_OrderStatusEnum::$Pending:

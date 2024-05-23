@@ -97,9 +97,9 @@ class SCMerchantClient
 			"projectId" => $this->project_id,
 			"description" => $request->getDescription(),
 			"payAmount" => $request->getPayAmount(),
-			"payCurrencyCode" => $request->getPayCurrencyCode(),
+			"payCurrency" => $request->getPayCurrency(),
 			"receiveAmount" => $request->getReceiveAmount(),
-			"receiveCurrencyCode" => $request->getReceiveCurrencyCode(),
+			"receiveCurrency" => $request->getReceiveCurrency(),
 			'callbackUrl' => $request->getCallbackUrl(),
 			'successUrl' => $request->getSuccessUrl(),
 			'failureUrl' => $request->getFailureUrl()
@@ -127,9 +127,9 @@ class SCMerchantClient
 				$body['preOrderId'],
 				$body['orderId'],
 				$body['validUntil'],
-				$body['payCurrencyCode'],
+				$body['payCurrency'],
 				$body['payNetworkCode'],
-				$body['receiveCurrencyCode'],
+				$body['receiveCurrency'],
 				$body['payAmount'],
 				$body['receiveAmount'],
 				$body['depositAddress'],
@@ -179,9 +179,9 @@ class SCMerchantClient
 				$body['preOrderId'],
 				$body['orderId'],
 				$body['validUntil'],
-				$body['payCurrencyCode'],
+				$body['payCurrency'],
 				$body['payNetworkCode'],
-				$body['receiveCurrencyCode'],
+				$body['receiveCurrency'],
 				$body['payAmount'],
 				$body['receiveAmount'],
 				$body['depositAddress'],
@@ -294,9 +294,9 @@ class SCMerchantClient
 			'projectId' => htmlspecialchars(trim($payload['projectId'])), // Removes any HTML tags and trims whitespace
 			'description' => htmlspecialchars(trim($payload['description'])), // Removes any HTML tags and trims whitespace
 			'payAmount' => filter_var($payload['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
-			'payCurrencyCode' => htmlspecialchars(trim($payload['payCurrencyCode'])), // Removes any HTML tags and trims whitespace
+			'payCurrency' => htmlspecialchars(trim($payload['payCurrency'])), // Removes any HTML tags and trims whitespace
 			'receiveAmount' => filter_var($payload['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
-			'receiveCurrencyCode' => htmlspecialchars(trim($payload['receiveCurrencyCode'])), // Removes any HTML tags and trims whitespace
+			'receiveCurrency' => htmlspecialchars(trim($payload['receiveCurrency'])), // Removes any HTML tags and trims whitespace
 			'callbackUrl' => filter_var($payload['callbackUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
 			'successUrl' => filter_var($payload['successUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
 			'failureUrl' => filter_var($payload['failureUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
@@ -315,19 +315,19 @@ class SCMerchantClient
 			$sanitized_payload['projectId'],
 			$sanitized_payload['description'],
 			$sanitized_payload['payAmount'],
-			$sanitized_payload['payCurrencyCode'],
+			$sanitized_payload['payCurrency'],
 			$sanitized_payload['receiveAmount'],
-			$sanitized_payload['receiveCurrencyCode'],
+			$sanitized_payload['receiveCurrency'],
 			$sanitized_payload['callbackUrl'],
 			$sanitized_payload['successUrl'],
 			$sanitized_payload['failureUrl']
 		) &&
 		!empty($sanitized_payload['orderId']) &&
 		!empty($sanitized_payload['projectId']) && 
-		strlen($sanitized_payload['payCurrencyCode']) === 3 &&
+		strlen($sanitized_payload['payCurrency']) === 3 &&
 		is_numeric($sanitized_payload['payAmount']) &&
 		is_numeric($sanitized_payload['receiveAmount']) &&
-		strlen($sanitized_payload['receiveCurrencyCode']) === 3 &&
+		strlen($sanitized_payload['receiveCurrency']) === 3 &&
 		filter_var($sanitized_payload['callbackUrl'], FILTER_VALIDATE_URL) &&
 		filter_var($sanitized_payload['successUrl'], FILTER_VALIDATE_URL) &&
 		filter_var($sanitized_payload['failureUrl'], FILTER_VALIDATE_URL) &&
@@ -345,7 +345,7 @@ class SCMerchantClient
 			$sanitized_data = $this->spectrocoinSanitizeCallback($post_data);
 			$is_valid = $this->spectrocoinValidateCallback($sanitized_data);
 			if ($is_valid) {
-				$order_callback = new SpectroCoin_OrderCallback($sanitized_data['userId'], $sanitized_data['merchantApiId'], $sanitized_data['merchantId'], $sanitized_data['apiId'], $sanitized_data['orderId'], $sanitized_data['payCurrencyCode'], $sanitized_data['payAmount'], $sanitized_data['receiveCurrencyCode'], $sanitized_data['receiveAmount'], $sanitized_data['receivedAmount'], $sanitized_data['description'], $sanitized_data['orderRequestId'], $sanitized_data['status'], $sanitized_data['sign']);
+				$order_callback = new SpectroCoin_OrderCallback($sanitized_data['userId'], $sanitized_data['merchantApiId'], $sanitized_data['merchantId'], $sanitized_data['apiId'], $sanitized_data['orderId'], $sanitized_data['payCurrency'], $sanitized_data['payAmount'], $sanitized_data['receiveCurrency'], $sanitized_data['receiveAmount'], $sanitized_data['receivedAmount'], $sanitized_data['description'], $sanitized_data['orderRequestId'], $sanitized_data['status'], $sanitized_data['sign']);
 				if ($this->spectrocoinValidateCallbackPayload($order_callback)) {
 					return $order_callback;
 				}
@@ -367,9 +367,9 @@ class SCMerchantClient
 			'merchantId' => htmlspecialchars(trim($post_data['merchantId'])),
 			'apiId' => htmlspecialchars(trim($post_data['apiId'])),
 			'orderId' => htmlspecialchars(trim($post_data['orderId'])),
-			'payCurrency' => htmlspecialchars(trim($post_data['payCurrencyCode'])),
+			'payCurrency' => htmlspecialchars(trim($post_data['payCurrency'])),
 			'payAmount' => filter_var($post_data['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'receiveCurrency' => htmlspecialchars(trim($post_data['receiveCurrencyCode'])),
+			'receiveCurrency' => htmlspecialchars(trim($post_data['receiveCurrency'])),
 			'receiveAmount' => filter_var($post_data['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
 			'receivedAmount' => filter_var($post_data['receivedAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
 			'description' => htmlspecialchars(trim($post_data['description'])),
@@ -394,9 +394,9 @@ class SCMerchantClient
             $sanitized_data['merchantId'], 
             $sanitized_data['apiId'],
 			$sanitized_data['orderId'], 
-			$sanitized_data['payCurrencyCode'], 
+			$sanitized_data['payCurrency'], 
 			$sanitized_data['payAmount'], 
-			$sanitized_data['receiveCurrencyCode'], 
+			$sanitized_data['receiveCurrency'], 
 			$sanitized_data['receiveAmount'], 
 			$sanitized_data['receivedAmount'], 
 			$sanitized_data['description'], 
@@ -423,13 +423,13 @@ class SCMerchantClient
                 $is_valid = false;
                 $failed_fields[] = 'apiId is empty.';
             }
-			if (strlen($sanitized_data['payCurrencyCode']) !== 3) {
+			if (strlen($sanitized_data['payCurrency']) !== 3) {
 				$is_valid = false;
-				$failed_fields[] = 'payCurrencyCode is not 3 characters long.';
+				$failed_fields[] = 'payCurrency is not 3 characters long.';
 			}
-			if (strlen($sanitized_data['receiveCurrencyCode']) !== 3) {
+			if (strlen($sanitized_data['receiveCurrency']) !== 3) {
 				$is_valid = false;
-				$failed_fields[] = 'receiveCurrencyCode is not 3 characters long.';
+				$failed_fields[] = 'receiveCurrency is not 3 characters long.';
 			}
 			if (!is_numeric($sanitized_data['payAmount']) || $sanitized_data['payAmount'] <= 0) {
 				$is_valid = false;
@@ -479,9 +479,9 @@ class SCMerchantClient
 				'merchantId' => $order_callback->getMerchantId(),
 				'apiId' => $order_callback->getApiId(),
 				'orderId' => $order_callback->getOrderId(),
-				'payCurrencyCode' => $order_callback->getPayCurrency(),
+				'payCurrency' => $order_callback->getPayCurrency(),
 				'payAmount' => $order_callback->getPayAmount(),
-				'receiveCurrencyCode' => $order_callback->getReceiveCurrency(),
+				'receiveCurrency' => $order_callback->getReceiveCurrency(),
 				'receiveAmount' => $order_callback->getReceiveAmount(),
 				'receivedAmount' => $order_callback->getReceivedAmount(),
 				'description' => $order_callback->getDescription(),

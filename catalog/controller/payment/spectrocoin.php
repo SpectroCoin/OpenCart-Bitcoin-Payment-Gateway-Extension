@@ -36,40 +36,45 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     {   
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
-
+    
         $project_id = $this->config->get('payment_spectrocoin_project');
         $client_id = $this->config->get('payment_spectrocoin_client_id');
         $client_secret = $this->config->get('payment_spectrocoin_client_secret');
         
         if (!$project_id || !$client_id || !$client_secret) {
             $this->log->write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
+            return;
         }
-
+    
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-
-        if ($order['custom_field']) {
+    
+        if (isset($order['custom_field']) && is_string($order['custom_field'])) {
+            $order['custom_field'] = unserialize($order['custom_field']);
+        }
+    
+        if (isset($order['custom_field']['url']) && isset($order['custom_field']['time'])) {
             $order_url = $order['custom_field']['url'];
             $time = $order['custom_field']['time'];
             if ($order_url && $time && ($time + $this->time) > time()) {
                 header('Location: ' . $order_url);
-            } 
-            else {
-                $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], 14);;
+                exit;
+            } else {
+                $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], 14);
                 header('Location: ' . $this->url->link('common/home'));
                 exit;
             }
         }
-
+    
         $currency = $order['currency_code'];
-        $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
+        $amount = round(($order['total'] * $this->currency->getvalue($order['currency_code'])), 2);
         $order_id = $order['order_id'];
         $description = "Order #{$order_id}";
-
+    
         $callback_url = $this->url->link('extension/spectrocoin/payment/callback', '', true);
         $success_url = $this->url->link('extension/spectrocoin/payment/accept', '', true);
         $failure_url = $this->url->link('extension/spectrocoin/payment/cancel', '', true);
-
+    
         $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(
             $order_id . "-" . $this->random_str(5),
@@ -82,21 +87,21 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
             $success_url, 
             $failure_url
         );
+    
         $response = $client->spectrocoinCreateOrder($order_request);
         if ($response instanceof SpectroCoin_ApiError) {
-            $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
+            $this->log->write('SpectroCoin Error: error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
             $this->api_error($response); 
-        } 
-        else if($response == null){
-            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__ );
+        } else if ($response == null) {
+            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__);
             $this->api_error('');
-        } 
-        else {
+        } else {
             $redirect_url = $response->getRedirectUrl();
-            //Order status Pending
-            $this->model_checkout_order->addHistory($order_id, 1);
-            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirect_url, 'time' => time())) . '\' WHERE order_id=\'' . $order_id . '\'');
+            // Order status Pending
+            $this->model_checkout_order->addOrderHistory($order_id, 1);
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field = \'' . serialize(array('url' => $redirect_url, 'time' => time())) . '\' WHERE order_id = \'' . $order_id . '\'');
             header('Location: ' . $redirect_url);
+            exit;
         }
     }
 

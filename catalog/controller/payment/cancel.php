@@ -6,8 +6,6 @@ class Cancel extends \Opencart\System\Engine\Controller
 {
     public function index()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', '1');
 
         $this->load->model('checkout/order');
         

@@ -50,22 +50,21 @@ class Callback extends \Opencart\System\Engine\Controller
         }
 
         $status = $callback->getStatus();
-        $this->log->write('SpectroCoin Callback: Order ID ' . $order_id . ' - Status: ' . $status);
 
         switch ($status) {
             case SpectroCoin_OrderStatusEnum::$New:
                 break;
             case SpectroCoin_OrderStatusEnum::$Pending:
-                $this->model_checkout_order->addOrderHistory($order_id, 2);
+                $this->model_checkout_order->addHistory($order_id, 2);
                 break;
             case SpectroCoin_OrderStatusEnum::$Expired:
-                $this->model_checkout_order->addOrderHistory($order_id, 14);
+                $this->model_checkout_order->addHistory($order_id, 14);
                 break;
             case SpectroCoin_OrderStatusEnum::$Failed:
-                $this->model_checkout_order->addOrderHistory($order_id, 7);
+                $this->model_checkout_order->addHistory($order_id, 7);
                 break;
             case SpectroCoin_OrderStatusEnum::$Paid:
-                $this->model_checkout_order->addOrderHistory($order_id, 15);
+                $this->model_checkout_order->addHistory($order_id, 15);
                 break;
             default:
                 $this->log->write('SpectroCoin Callback: Unknown order status - ' . $status);

@@ -59,7 +59,7 @@ class SpectroCoin_CreateOrderResponse
         return $this->validUntil;
     }
 
-    public function getPayCurrency()
+    public function getPayCurrencyCode()
     {
         return $this->payCurrencyCode;
     }
@@ -69,7 +69,7 @@ class SpectroCoin_CreateOrderResponse
         return $this->payNetworkCode;
     }
 
-    public function getReceiveCurrency()
+    public function getReceiveCurrencyCodez()
     {
         return $this->receiveCurrencyCode;
     }

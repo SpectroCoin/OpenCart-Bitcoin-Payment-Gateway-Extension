@@ -97,9 +97,9 @@ class SCMerchantClient
 			"projectId" => $this->project_id,
 			"description" => $request->getDescription(),
 			"payAmount" => $request->getPayAmount(),
-			"payCurrency" => $request->getPayCurrency(),
+			"payCurrencyCode" => $request->getPayCurrencyCode(),
 			"receiveAmount" => $request->getReceiveAmount(),
-			"receiveCurrency" => $request->getReceiveCurrency(),
+			"receiveCurrencyCode" => $request->getReceiveCurrencyCode(),
 			'callbackUrl' => $request->getCallbackUrl(),
 			'successUrl' => $request->getSuccessUrl(),
 			'failureUrl' => $request->getFailureUrl()
@@ -127,9 +127,9 @@ class SCMerchantClient
 				$body['preOrderId'],
 				$body['orderId'],
 				$body['validUntil'],
-				$body['payCurrency'],
+				$body['payCurrencyCode'],
 				$body['payNetworkCode'],
-				$body['receiveCurrency'],
+				$body['receiveCurrencyCode'],
 				$body['payAmount'],
 				$body['receiveAmount'],
 				$body['depositAddress'],
@@ -179,9 +179,9 @@ class SCMerchantClient
 				$body['preOrderId'],
 				$body['orderId'],
 				$body['validUntil'],
-				$body['payCurrency'],
+				$body['payCurrencyCode'],
 				$body['payNetworkCode'],
-				$body['receiveCurrency'],
+				$body['receiveCurrencyCode'],
 				$body['payAmount'],
 				$body['receiveAmount'],
 				$body['depositAddress'],
@@ -294,9 +294,9 @@ class SCMerchantClient
 			'projectId' => htmlspecialchars(trim($payload['projectId'])), // Removes any HTML tags and trims whitespace
 			'description' => htmlspecialchars(trim($payload['description'])), // Removes any HTML tags and trims whitespace
 			'payAmount' => filter_var($payload['payAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
-			'payCurrency' => htmlspecialchars(trim($payload['payCurrency'])), // Removes any HTML tags and trims whitespace
+			'payCurrencyCode' => htmlspecialchars(trim($payload['payCurrencyCode'])), // Removes any HTML tags and trims whitespace
 			'receiveAmount' => filter_var($payload['receiveAmount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), // Sanitizes to a float
-			'receiveCurrency' => htmlspecialchars(trim($payload['receiveCurrency'])), // Removes any HTML tags and trims whitespace
+			'receiveCurrencyCode' => htmlspecialchars(trim($payload['receiveCurrencyCode'])), // Removes any HTML tags and trims whitespace
 			'callbackUrl' => filter_var($payload['callbackUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
 			'successUrl' => filter_var($payload['successUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
 			'failureUrl' => filter_var($payload['failureUrl'], FILTER_SANITIZE_URL), // Sanitizes URL
@@ -315,19 +315,19 @@ class SCMerchantClient
 			$sanitized_payload['projectId'],
 			$sanitized_payload['description'],
 			$sanitized_payload['payAmount'],
-			$sanitized_payload['payCurrency'],
+			$sanitized_payload['payCurrencyCode'],
 			$sanitized_payload['receiveAmount'],
-			$sanitized_payload['receiveCurrency'],
+			$sanitized_payload['receiveCurrencyCode'],
 			$sanitized_payload['callbackUrl'],
 			$sanitized_payload['successUrl'],
 			$sanitized_payload['failureUrl']
 		) &&
 		!empty($sanitized_payload['orderId']) &&
 		!empty($sanitized_payload['projectId']) && 
-		strlen($sanitized_payload['payCurrency']) === 3 &&
+		strlen($sanitized_payload['payCurrencyCode']) === 3 &&
 		is_numeric($sanitized_payload['payAmount']) &&
 		is_numeric($sanitized_payload['receiveAmount']) &&
-		strlen($sanitized_payload['receiveCurrency']) === 3 &&
+		strlen($sanitized_payload['receiveCurrencyCode']) === 3 &&
 		filter_var($sanitized_payload['callbackUrl'], FILTER_VALIDATE_URL) &&
 		filter_var($sanitized_payload['successUrl'], FILTER_VALIDATE_URL) &&
 		filter_var($sanitized_payload['failureUrl'], FILTER_VALIDATE_URL) &&
@@ -345,7 +345,7 @@ class SCMerchantClient
 			$sanitized_data = $this->spectrocoinSanitizeCallback($post_data);
 			$is_valid = $this->spectrocoinValidateCallback($sanitized_data);
 			if ($is_valid) {
-				$order_callback = new SpectroCoin_OrderCallback($sanitized_data['userId'], $sanitized_data['merchantApiId'], $sanitized_data['merchantId'], $sanitized_data['apiId'], $sanitized_data['orderId'], $sanitized_data['payCurrency'], $sanitized_data['payAmount'], $sanitized_data['receiveCurrency'], $sanitized_data['receiveAmount'], $sanitized_data['receivedAmount'], $sanitized_data['description'], $sanitized_data['orderRequestId'], $sanitized_data['status'], $sanitized_data['sign']);
+				$order_callback = new SpectroCoin_OrderCallback($sanitized_data['userId'], $sanitized_data['merchantApiId'], $sanitized_data['merchantId'], $sanitized_data['apiId'], $sanitized_data['orderId'], $sanitized_data['payCurrencyCode'], $sanitized_data['payAmount'], $sanitized_data['receiveCurrencyCode'], $sanitized_data['receiveAmount'], $sanitized_data['receivedAmount'], $sanitized_data['description'], $sanitized_data['orderRequestId'], $sanitized_data['status'], $sanitized_data['sign']);
 				if ($this->spectrocoinValidateCallbackPayload($order_callback)) {
 					return $order_callback;
 				}

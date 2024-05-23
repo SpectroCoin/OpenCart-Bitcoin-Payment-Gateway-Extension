@@ -65,7 +65,7 @@ class SpectroCoin_CreateOrderRequest
 	/**
 	 * @return string
 	 */
-	public function getPayCurrency()
+	public function getPayCurrencyCode()
 	{
 		return $this->payCurrencyCode == null ? '' : $this->payCurrencyCode;
 	}
@@ -81,7 +81,7 @@ class SpectroCoin_CreateOrderRequest
 	/**
 	 * @return string
 	 */
-	public function getReceiveCurrency()
+	public function getReceiveCurrencyCode()
 	{
 		return $this->receiveCurrencyCode == null ? '' : $this->receiveCurrencyCode;
 	}

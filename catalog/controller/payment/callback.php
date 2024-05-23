@@ -41,7 +41,7 @@ class Callback extends \Opencart\System\Engine\Controller
             exit;
         }
 
-        $order_id = $callback->getOrderId();
+        $order_id = (int) $callback->getOrderId();
         $order = $this->model_checkout_order->getOrder($order_id);
 
         if (!$order) {

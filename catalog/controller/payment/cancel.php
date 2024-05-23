@@ -11,14 +11,24 @@ class Cancel extends \Opencart\System\Engine\Controller
 
         $this->load->model('checkout/order');
         
-        if (isset($this->session->data['order_id'])) {
-            $order_id = $this->session->data['order_id'];
-            $order = $this->model_checkout_order->getOrder($order_id);
-            if ($order) {
-                $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
+        // Check if order_id is set in session, if not, set it here
+        if (!isset($this->session->data['order_id'])) {
+            // Logic to retrieve and set the order_id if not already set
+            if (isset($this->request->get['order_id'])) {
+                $this->session->data['order_id'] = (int)$this->request->get['order_id'];
+            } else {
+                $this->log->write('SpectroCoin Cancel: Order ID is not set in the session or request.');
+                $this->response->redirect($this->url->link('checkout/cart'));
+                return;
             }
+        }
+
+        $order_id = $this->session->data['order_id'];
+        $order = $this->model_checkout_order->getOrder($order_id);
+        if ($order) {
+            $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
         } else {
-            $this->log->write('SpectroCoin Cancel: Order ID is not set in the session.');
+            $this->log->write('SpectroCoin Cancel: Order not found - Order ID: ' . $order_id);
         }
 
         $this->language->load('extension/spectrocoin/payment/spectrocoin');

@@ -32,10 +32,7 @@ class Callback extends \Opencart\System\Engine\Controller
             }
         }
 
-        $this->log->write('Callback data BEFORE processing - ' . json_encode($post_data));
-
         $callback = $client->spectrocoinProcessCallback($post_data);
-        $this->log->write('Callback data AFTER processing - ' . json_encode($post_data));
         if (!$callback) {
             $this->log->write('SpectroCoin Callback: Invalid callback data');
             exit;

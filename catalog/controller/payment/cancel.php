@@ -6,27 +6,45 @@ class Cancel extends \Opencart\System\Engine\Controller
 {
     public function index()
     {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
 
         $this->load->model('checkout/order');
         
-        // Check if order_id is set in session, if not, set it here
-        if (!isset($this->session->data['order_id'])) {
-            // Logic to retrieve and set the order_id if not already set
+        // Try to retrieve the order_id from the session
+        if (isset($this->session->data['order_id'])) {
+            $order_id = $this->session->data['order_id'];
+        } else {
+            // Log missing order_id in session
+            $this->log->write('SpectroCoin Cancel: Order ID is not set in the session.');
+            
+            // Optionally try to get order_id from URL parameters
             if (isset($this->request->get['order_id'])) {
-                $this->session->data['order_id'] = (int)$this->request->get['order_id'];
+                $order_id = (int)$this->request->get['order_id'];
+                $this->log->write('SpectroCoin Cancel: Order ID retrieved from URL parameter.');
             } else {
-                $this->log->write('SpectroCoin Cancel: Order ID is not set in the session or request.');
-                $this->response->redirect($this->url->link('checkout/cart'));
-                return;
+                // Optionally try to get the most recent order for the user
+                $this->load->model('account/order');
+                $orders = $this->model_account_order->getOrders();
+                if (!empty($orders)) {
+                    $order_id = $orders[0]['order_id'];
+                    $this->log->write('SpectroCoin Cancel: Order ID retrieved from recent orders.');
+                } else {
+                    $this->log->write('SpectroCoin Cancel: No orders found for user.');
+                    $order_id = null;
+                }
             }
         }
 
-        $order_id = $this->session->data['order_id'];
-        $order = $this->model_checkout_order->getOrder($order_id);
-        if ($order) {
-            $this->model_checkout_order->addHistory($order_id, 7); // 7 - Canceled
+        if ($order_id) {
+            $order = $this->model_checkout_order->getOrder($order_id);
+            if ($order) {
+                $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
+            } else {
+                $this->log->write('SpectroCoin Cancel: Invalid Order ID.');
+            }
         } else {
-            $this->log->write('SpectroCoin Cancel: Order not found - Order ID: ' . $order_id);
+            $this->log->write('SpectroCoin Cancel: Order ID is not available.');
         }
 
         $this->language->load('extension/spectrocoin/payment/spectrocoin');

@@ -33,7 +33,10 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     }
 
     public function confirm()
-    {
+    {   
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+        
         $project_id = $this->config->get('payment_spectrocoin_project');
         $client_id = $this->config->get('payment_spectrocoin_client_id');
         $client_secret = $this->config->get('payment_spectrocoin_client_secret');
@@ -63,13 +66,9 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
         $order_id = $order['order_id'];
         $description = "Order #{$order_id}";
 
-        $callback_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/callback';
-        $success_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/accept';
-        $failure_url = HTTP_SERVER . 'index.php?route=extension/spectrocoin/payment/spectrocoin/cancel';
-
-        // $callback_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/callback';
-        // $success_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/accept';
-        // $failure_url = HTTP_SERVER . 'index.php?route=extension/payment/spectrocoin/cancel';
+        $callback_url = $this->url->link('extension/spectrocoin/payment/callback', '', true);
+        $success_url = $this->url->link('extension/spectrocoin/payment/accept', '', true);
+        $failure_url = $this->url->link('extension/spectrocoin/payment/cancel', '', true);
 
         $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(

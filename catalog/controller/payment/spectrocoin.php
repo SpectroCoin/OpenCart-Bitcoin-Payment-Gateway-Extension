@@ -36,45 +36,40 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     {   
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
-    
+
         $project_id = $this->config->get('payment_spectrocoin_project');
         $client_id = $this->config->get('payment_spectrocoin_client_id');
         $client_secret = $this->config->get('payment_spectrocoin_client_secret');
         
         if (!$project_id || !$client_id || !$client_secret) {
             $this->log->write('SpectroCoin Error: in configuration some of the mandatory credentials are not filled.');
-            return;
         }
-    
+
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-    
-        if (isset($order['custom_field']) && is_string($order['custom_field'])) {
-            $order['custom_field'] = unserialize($order['custom_field']);
-        }
-    
-        if (isset($order['custom_field']['url']) && isset($order['custom_field']['time'])) {
+
+        if ($order['custom_field']) {
             $order_url = $order['custom_field']['url'];
             $time = $order['custom_field']['time'];
             if ($order_url && $time && ($time + $this->time) > time()) {
                 header('Location: ' . $order_url);
-                exit;
-            } else {
-                $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], 14);
+            } 
+            else {
+                $this->model_checkout_order->addHistory($this->session->data['order_id'], 14);;
                 header('Location: ' . $this->url->link('common/home'));
                 exit;
             }
         }
-    
+
         $currency = $order['currency_code'];
-        $amount = round(($order['total'] * $this->currency->getvalue($order['currency_code'])), 2);
+        $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
         $order_id = $order['order_id'];
         $description = "Order #{$order_id}";
-    
+
         $callback_url = $this->url->link('extension/spectrocoin/payment/callback', '', true);
         $success_url = $this->url->link('extension/spectrocoin/payment/accept', '', true);
         $failure_url = $this->url->link('extension/spectrocoin/payment/cancel', '', true);
-    
+
         $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
         $order_request = new SpectroCoin_CreateOrderRequest(
             $order_id . "-" . $this->random_str(5),
@@ -87,125 +82,23 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
             $success_url, 
             $failure_url
         );
-    
         $response = $client->spectrocoinCreateOrder($order_request);
         if ($response instanceof SpectroCoin_ApiError) {
-            $this->log->write('SpectroCoin Error: error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
+            $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
             $this->api_error($response); 
-        } else if ($response == null) {
-            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__);
+        } 
+        else if($response == null){
+            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__ );
             $this->api_error('');
-        } else {
+        } 
+        else {
             $redirect_url = $response->getRedirectUrl();
-            // Order status Pending
-            $this->model_checkout_order->addOrderHistory($order_id, 1);
-            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field = \'' . serialize(array('url' => $redirect_url, 'time' => time())) . '\' WHERE order_id = \'' . $order_id . '\'');
+            //Order status Pending
+            $this->model_checkout_order->addHistory($order_id, 1);
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(array('url' => $redirect_url, 'time' => time())) . '\' WHERE order_id=\'' . $order_id . '\'');
             header('Location: ' . $redirect_url);
-            exit;
         }
     }
-
-    public function accept()
-    {
-        if (isset($this->session->data['user_token'])) {
-            $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success&user_token=' . $this->session->data['user_token']);
-        } else {
-            $this->response->redirect(HTTP_SERVER . 'index.php?route=checkout/success');
-        }
-    }
-
-    public function cancel()
-    {
-        $this->load->model('checkout/order');
-        $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-        if ($order) {
-            $this->model_checkout_order->addOrderHistory($order['order_id'], 7); // Canceled
-        }
-        $this->language->load('payment/spectrocoin');
-        $data = array();
-        $data['title'] = sprintf($this->language->get('heading_title'), '/index.php?route=checkout/cart');
-        if (isset($this->request->server['HTTPS']) and $this->request->server['HTTPS'] == 'on') {
-            $data['base'] = HTTP_SERVER;
-        }
-        else
-        {
-            $data['base'] = HTTP_SERVER;
-        }
-        $data['continue'] = HTTP_SERVER . '/index.php?route=checkout/cart';
-        $data['heading_title'] = $this->language->get('heading_title');
-        $data['text_failure'] = $this->language->get('text_failure');
-        $data['text_failure_wait'] = $this->language->get('text_failure_wait');
-        $template = 'extension/spectrocoin/payment/spectrocoin_failure';
-        $this->response->setOutput($this->load->view($template, $data));
-    }
-
-    public function callback() {
-        $expected_keys = ['userId', 'merchantApiId', 'merchantId', 'apiId', 'orderId', 'payCurrency', 'payAmount', 'receiveCurrency', 'receiveAmount', 'receivedAmount', 'description', 'orderRequestId', 'status', 'sign'];
-    
-        $project_id = $this->config->get('payment_spectrocoin_project');
-        $client_id = $this->config->get('payment_spectrocoin_client_id');
-        $client_secret = $this->config->get('payment_spectrocoin_client_secret');
-    
-        $this->load->model('checkout/order');
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            $this->log->write('SpectroCoin Callback: Invalid request method');
-            exit;
-        }
-        
-        $client = new SCMerchantClient($this->registry, $this->session, self::MERCHANT_API_URL, $project_id, $client_id, $client_secret, self::AUTH_URL);
-    
-        $post_data = [];
-        foreach ($expected_keys as $key) {
-            if (isset($_POST[$key])) {
-                $post_data[$key] = $_POST[$key]; // TODO: could be $_POST
-            }
-        }
-    
-        $this->log->write('SpectroCoin Callback: Received data - ' . json_encode($post_data));
-    
-        $callback = $client->spectrocoinProcessCallback($post_data);
-        if (!$callback) {
-            $this->log->write('SpectroCoin Callback: Invalid callback data');
-            exit;
-        }
-    
-        $order_id = $callback->getOrderId();
-        $order = $this->model_checkout_order->getOrder($order_id);
-    
-        if (!$order) {
-            $this->log->write('SpectroCoin Callback: Order not found - Order ID: ' . $order_id);
-            exit;
-        }
-    
-        $status = $callback->getStatus();
-        $this->log->write('SpectroCoin Callback: Order ID ' . $order_id . ' - Status: ' . $status);
-    
-        switch ($status) {
-            case SpectroCoin_OrderStatusEnum::$Test:
-                break;
-            case SpectroCoin_OrderStatusEnum::$New:
-                break;
-            case SpectroCoin_OrderStatusEnum::$Pending:
-                $this->model_checkout_order->addOrderHistory($order_id, 2); // 2 - Processing
-                break;
-            case SpectroCoin_OrderStatusEnum::$Expired:
-                $this->model_checkout_order->addOrderHistory($order_id, 14); // 14 - Expired
-                break;
-            case SpectroCoin_OrderStatusEnum::$Failed:
-                $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
-                break;
-            case SpectroCoin_OrderStatusEnum::$Paid:
-                $this->model_checkout_order->addOrderHistory($order_id, 15); // 15 - Processed
-                break;
-            default:
-                $this->log->write('SpectroCoin Callback: Unknown order status - ' . $status);
-                echo 'Unknown order status: ' . $status;
-                exit;
-        }
-    
-        echo '*ok*';
-    }
-    
 
     public function api_error($response) {
 

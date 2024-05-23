@@ -24,7 +24,7 @@ class Cancel extends \Opencart\System\Engine\Controller
         $order_id = $this->session->data['order_id'];
         $order = $this->model_checkout_order->getOrder($order_id);
         if ($order) {
-            $this->model_checkout_order->addOrderHistory($order_id, 7); // 7 - Canceled
+            $this->model_checkout_order->addHistory($order_id, 7); // 7 - Canceled
         } else {
             $this->log->write('SpectroCoin Cancel: Order not found - Order ID: ' . $order_id);
         }

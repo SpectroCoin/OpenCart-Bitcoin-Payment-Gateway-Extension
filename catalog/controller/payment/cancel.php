@@ -10,8 +10,7 @@ class Cancel extends \Opencart\System\Engine\Controller
         ini_set('display_errors', '1');
 
         $this->load->model('checkout/order');
-        
-        // Try to retrieve the order_id from the session
+    
         if (isset($this->session->data['order_id'])) {
             $order_id = $this->session->data['order_id'];
         } else {

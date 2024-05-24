@@ -19,7 +19,7 @@ class Callback extends \Opencart\System\Engine\Controller
 
         $this->load->model('checkout/order');
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            $this->log->write('SpectroCoin Callback: Invalid request method');
+            $this->log->write('SpectroCoin Error: Invalid request method');
             exit;
         }
 
@@ -34,7 +34,7 @@ class Callback extends \Opencart\System\Engine\Controller
 
         $callback = $client->spectrocoinProcessCallback($post_data);
         if (!$callback) {
-            $this->log->write('SpectroCoin Callback: Invalid callback data');
+            $this->log->write('SpectroCoin Error: Invalid callback data');
             exit;
         }
 
@@ -42,7 +42,7 @@ class Callback extends \Opencart\System\Engine\Controller
         $order = $this->model_checkout_order->getOrder($order_id);
 
         if (!$order) {
-            $this->log->write('SpectroCoin Callback: Order not found - Order ID: ' . $order_id);
+            $this->log->write('SpectroCoin Error: Order not found - Order ID: ' . $order_id);
             exit;
         }
 

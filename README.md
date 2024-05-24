@@ -59,6 +59,8 @@ _Migrated_: Since HTTPful is no longer maintained, we migrated to GuzzleHttp. In
 
 _Reworked_: SpectroCoin callback handling was reworked. Added appropriate callback routing for success, fail and callback.
 
+_Updated_: Instead of using outdated addOrderHistory for changing the order status, we now use the new addHistory method.
+
 ### 1.0.0 ()
 
 _Updated_: Order creation API endpoint has been updated for enhanced performance and security.

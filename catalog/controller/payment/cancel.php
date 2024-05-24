@@ -14,19 +14,15 @@ class Cancel extends \Opencart\System\Engine\Controller
         if (isset($this->session->data['order_id'])) {
             $order_id = $this->session->data['order_id'];
         } else {
-            $this->log->write('SpectroCoin Cancel: Order ID is not set in the session.');
             
             if (isset($this->request->get['order_id'])) {
                 $order_id = (int)$this->request->get['order_id'];
-                $this->log->write('SpectroCoin Cancel: Order ID retrieved from URL parameter.');
             } else {
                 $this->load->model('account/order');
                 $orders = $this->model_account_order->getOrders();
                 if (!empty($orders)) {
                     $order_id = $orders[0]['order_id'];
-                    $this->log->write('SpectroCoin Cancel: Order ID retrieved from recent orders.');
                 } else {
-                    $this->log->write('SpectroCoin Cancel: No orders found for user.');
                     $order_id = null;
                 }
             }
@@ -37,10 +33,10 @@ class Cancel extends \Opencart\System\Engine\Controller
             if ($order) {
                 $this->model_checkout_order->addHistory($order_id, 7); // 7 - Canceled
             } else {
-                $this->log->write('SpectroCoin Cancel: Invalid Order ID.');
+                $this->log->write('SpectroCoin Error: Invalid Order ID.');
             }
         } else {
-            $this->log->write('SpectroCoin Cancel: Order ID is not available.');
+            $this->log->write('SpectroCoin Error: Order ID is not available.');
         }
 
         $this->language->load('extension/spectrocoin/payment/spectrocoin');

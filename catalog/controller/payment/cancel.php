@@ -15,15 +15,12 @@ class Cancel extends \Opencart\System\Engine\Controller
         if (isset($this->session->data['order_id'])) {
             $order_id = $this->session->data['order_id'];
         } else {
-            // Log missing order_id in session
             $this->log->write('SpectroCoin Cancel: Order ID is not set in the session.');
             
-            // Optionally try to get order_id from URL parameters
             if (isset($this->request->get['order_id'])) {
                 $order_id = (int)$this->request->get['order_id'];
                 $this->log->write('SpectroCoin Cancel: Order ID retrieved from URL parameter.');
             } else {
-                // Optionally try to get the most recent order for the user
                 $this->load->model('account/order');
                 $orders = $this->model_account_order->getOrders();
                 if (!empty($orders)) {

@@ -2,6 +2,8 @@
 
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCMerchantClient.php';
+
 class Spectrocoin extends \Opencart\System\Engine\Controller
 {
 	const MERCHANT_API_URL = 'https://test.spectrocoin.com/api/public';

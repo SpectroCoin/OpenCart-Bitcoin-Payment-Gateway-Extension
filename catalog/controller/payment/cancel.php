@@ -1,34 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-class Cancel extends \Opencart\System\Engine\Controller
+use Opencart\System\Engine\Controller;
+
+class Cancel extends Controller
 {
-    public function index()
+    public function index(): void
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', '1');
-
         $this->load->model('checkout/order');
-    
-        if (isset($this->session->data['order_id'])) {
-            $order_id = $this->session->data['order_id'];
-        } else {
-            
-            if (isset($this->request->get['order_id'])) {
-                $order_id = (int)$this->request->get['order_id'];
-            } else {
-                $this->load->model('account/order');
-                $orders = $this->model_account_order->getOrders();
-                if (!empty($orders)) {
-                    $order_id = $orders[0]['order_id'];
-                } else {
-                    $order_id = null;
-                }
-            }
-        }
 
-        if ($order_id) {
+        $order_id = $this->getOrderId();
+
+        if ($order_id !== null) {
             $order = $this->model_checkout_order->getOrder($order_id);
             if ($order) {
                 $this->model_checkout_order->addHistory($order_id, 7); // 7 - Canceled
@@ -39,23 +25,63 @@ class Cancel extends \Opencart\System\Engine\Controller
             $this->log->write('SpectroCoin Error: Order ID is not available.');
         }
 
-        $this->language->load('extension/spectrocoin/payment/spectrocoin');
-        
-        $data = array();
-        $data['title'] = sprintf($this->language->get('heading_title'), '/index.php?route=checkout/cart');
-        
-        if (isset($this->request->server['HTTPS']) && $this->request->server['HTTPS'] == 'on') {
-            $data['base'] = HTTPS_SERVER;
-        } else {
-            $data['base'] = HTTP_SERVER;
+        $this->loadFailurePage();
+    }
+
+    /**
+     * Retrieves the order ID from the session or request.
+     *
+     * @return int|null The order ID if found, or null otherwise.
+     */
+    private function getOrderId(): ?int
+    {
+        if (isset($this->session->data['order_id'])) {
+            return (int)$this->session->data['order_id'];
         }
-        
-        $data['continue'] = $this->url->link('checkout/cart');
-        $data['heading_title'] = $this->language->get('heading_title');
-        $data['text_failure'] = $this->language->get('text_failure');
+
+        if (isset($this->request->get['order_id'])) {
+            return (int)$this->request->get['order_id'];
+        }
+
+        $this->load->model('account/order');
+        $orders = $this->model_account_order->getOrders();
+        if (!empty($orders)) {
+            return (int)$orders[0]['order_id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Loads the failure page to be displayed to the user after order cancellation.
+     *
+     * @return void
+     */
+    private function loadFailurePage(): void
+    {
+        $this->language->load('extension/spectrocoin/payment/spectrocoin');
+
+        $data = [];
+        $data['title']             = sprintf($this->language->get('heading_title'), '/index.php?route=checkout/cart');
+        $data['base']              = $this->getBaseUrl();
+        $data['continue']          = $this->url->link('checkout/cart');
+        $data['heading_title']     = $this->language->get('heading_title');
+        $data['text_failure']      = $this->language->get('text_failure');
         $data['text_failure_wait'] = $this->language->get('text_failure_wait');
-        
+
         $template = 'extension/spectrocoin/payment/spectrocoin_failure';
         $this->response->setOutput($this->load->view($template, $data));
+    }
+
+    /**
+     * Retrieves the base URL depending on whether HTTPS is used.
+     *
+     * @return string The base URL.
+     */
+    private function getBaseUrl(): string
+    {
+        return isset($this->request->server['HTTPS']) && $this->request->server['HTTPS'] === 'on' 
+            ? HTTPS_SERVER 
+            : HTTP_SERVER;
     }
 }

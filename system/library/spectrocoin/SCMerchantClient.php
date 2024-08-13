@@ -23,10 +23,13 @@ use InvalidArgumentException;
 use Exception;
 use RuntimeException;
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../../../vendor/autoload.php';
 
 class SCMerchantClient
 {
+    private $opencart_registry;
+	private $opencart_session;
+
     private string $project_id;
     private string $client_id;
     private string $client_secret;
@@ -40,14 +43,31 @@ class SCMerchantClient
      * @param string $client_id
      * @param string $client_secret
      */
-    public function __construct(string $project_id, string $client_id, string $client_secret)
+    public function __construct($opencart_registry, $opencart_session, string $project_id, string $client_id, string $client_secret)
     {
+        $this->opencart_registry = $opencart_registry;
+		$this->opencart_session = $opencart_session;
+
         $this->project_id = $project_id;
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
 
         $this->encryption_key = $this->initializeEncryptionKey();
         $this->http_client = new Client();
+
+        $uniqueKeyParts = [
+			$this->registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
+			DB_PREFIX,
+		];
+	
+		$uniqueKeyParts = array_filter($uniqueKeyParts, function($value) { return !empty($value); });
+	
+		if (!empty($uniqueKeyParts)) {
+			$this->encryption_key = hash('sha256', implode(':', $uniqueKeyParts));
+		} else {
+			throw new Exception('Failed to generate a unique encryption key.');
+		}
+
     }
 
     /**
@@ -145,10 +165,10 @@ class SCMerchantClient
      * Refreshes the access token
      * 
      * @param int $current_time
-     * @return array|null
+     * @return array|ApiError
      * @throws RequestException
      */
-    public function refreshAccessToken(int $current_time)
+    public function refreshAccessToken(int $current_time): array|ApiError
     {
         try {
             $response = $this->http_client->post(Config::AUTH_URL, [
@@ -158,19 +178,19 @@ class SCMerchantClient
                     'client_secret' => $this->client_secret,
                 ],
             ]);
-
+    
             $access_token_data = json_decode((string) $response->getBody(), true);
             if (!isset($access_token_data['access_token'], $access_token_data['expires_in'])) {
                 return new ApiError('Invalid access token response');
             }
-
+    
             $access_token_data['expires_at'] = $current_time + $access_token_data['expires_in'];
-			$encrypted_access_token_data = Utils::encryptAuthData(json_encode($access_token_data), $this->encryption_key);
-	
-			$this->storeEncryptedData($encrypted_access_token_data);
-
-			return $access_token_data;
-
+            $encrypted_access_token_data = Utils::encryptAuthData(json_encode($access_token_data), $this->encryption_key);
+    
+            $this->storeEncryptedData($encrypted_access_token_data);
+    
+            return $access_token_data;
+    
         } catch (RequestException $e) {
             return new ApiError($e->getMessage(), $e->getCode());
         }
@@ -189,38 +209,22 @@ class SCMerchantClient
     }
 
     /**
-     * Initializes the encryption key used for securing sensitive data.
-     * The key is stored in the session. If it's not already set in the session, a new key is generated.
-     * 
-     * @return string The encryption key.
+     * Stores encrypted authentication token data in the session.
+     *
+     * @param string $encrypted_access_token_data The encrypted token data to be stored.
      */
-    private function initializeEncryptionKey(): string {
-        if (!isset($_SESSION['encryption_key'])) {
-            $_SESSION['encryption_key'] = Utils::generateEncryptionKey();
-        }
-        return $_SESSION['encryption_key'];
+    private function storeEncryptedData(string $encrypted_access_token_data): void
+    {
+        $this->session->data['spectrocoin_auth_token'] = $encrypted_access_token_data;
     }
 
     /**
-     * Stores the encrypted access token data in the session.
-     * 
-     * @param string $encrypted_access_token_data The encrypted token data to store.
-     * @return void
+     * Retrieves encrypted authentication token data from the session.
+     *
+     * @return string|null The encrypted token data if it exists in the session, null otherwise.
      */
-    private function storeEncryptedData(string $encrypted_access_token_data): void {
-        $_SESSION['encrypted_access_token_data'] = $encrypted_access_token_data;
-    }
-
-    /**
-     * Retrieves the encrypted access token data from the session.
-     * 
-     * @return string|false The encrypted access token data, or false if not set.
-     */
-    private function retrieveEncryptedData(): string|false {
-        if (isset($_SESSION['encrypted_access_token_data'])) {
-            return $_SESSION['encrypted_access_token_data'];
-        } else {
-            return false;
-        }
+    private function retrieveEncryptedData(): ?string
+    {
+        return $this->session->data['spectrocoin_auth_token'] ?? null;
     }
 }

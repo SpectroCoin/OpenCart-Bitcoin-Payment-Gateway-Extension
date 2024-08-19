@@ -13,6 +13,13 @@ html {
   height: 100%;
 }
 
+h5 {
+  font-size: 16px;
+  word-wrap: break-word; /* Ensures long words wrap to the next line */
+  word-break: break-word; /* Allows breaking words at arbitrary points to prevent overflow */
+  white-space: normal; /* Prevents text from overflowing and keeps it wrapped within the container */
+}
+
 .container {
   align-items: center;
   display: flex;
@@ -28,23 +35,13 @@ html {
   display: flex;
 }
 
-h3 {
-  word-wrap: break-word;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: 24px;
-  max-width: 100%;
-  word-break: break-word;
-  text-align: left;
-}
-
 .content_container {
   display: flex;
   flex: 1;
   flex-flow: column;
   margin: 0 auto;
-  max-width: 460px;
-  width: 100vw;
+  max-width: 1000px;
+  width: 60%;
 }
 
 .content_content {
@@ -54,11 +51,15 @@ h3 {
   flex-flow: column;
   margin: 12px 0 24px;
   padding: 20px;
+  padding-top: 40px;
+  padding-bottom: 40px;
 }
 
 .form_body {
   display: flex;
   flex-flow: column;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 button {
@@ -73,10 +74,6 @@ button {
   background: #4972f4;
   background-color: rgb(73, 114, 244);
   border: 2px solid #4972f4;
-  border-top-color: rgb(73, 114, 244);
-  border-right-color: rgb(73, 114, 244);
-  border-bottom-color: rgb(73, 114, 244);
-  border-left-color: rgb(73, 114, 244);
   border-radius: 4px;
   color: #fff;
   cursor: pointer;
@@ -105,6 +102,7 @@ button {
   font-size: 14px;
   font-weight: 500;
 }
+
 .form_content .form-text {
   font-size: 14px;
   line-height: 16px;

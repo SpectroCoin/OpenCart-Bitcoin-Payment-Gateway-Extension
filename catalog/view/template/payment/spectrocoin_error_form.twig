@@ -7,17 +7,15 @@
    <body>
       <div class="container full-screen">
          <div class="content_container">
-            <div class="header_container">
-               <h5>
+            <div class="content_content">
+               <div class="form_body">
+                <h5>
                   Error: 
                   {% if error_code != 0 %}
                      {{ error_code }} 
                   {% endif %}
                   {{ error_message }}
                </h5>
-            </div>
-            <div class="content_content">
-               <div class="form_body">
                   <a href="{{ shop_link }}"><button>Return to shop</button></a>
                </div>
             </div>

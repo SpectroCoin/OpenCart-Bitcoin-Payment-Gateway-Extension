@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCMerchantClient.php';
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCMerchantClient;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
 
 class Spectrocoin extends \Opencart\System\Engine\Controller
 {
-	const MERCHANT_API_URL = 'https://test.spectrocoin.com/api/public';
-    const AUTH_URL = 'https://test.spectrocoin.com/api/public/oauth/token';
     var $time = 600;
 
     public function index()
@@ -31,10 +32,7 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
     }
 
     public function confirm()
-    {   
-        error_reporting(E_ALL);
-        ini_set('display_errors', '1');
-
+    {
         $project_id = $this->config->get('payment_spectrocoin_project');
         $client_id = $this->config->get('payment_spectrocoin_client_id');
         $client_secret = $this->config->get('payment_spectrocoin_client_secret');
@@ -58,36 +56,23 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
                 exit;
             }
         }
+        $sc_merchant_client = new SCMerchantClient($this->registry, $this->session, $project_id, $client_id, $client_secret);
+        $order_id = $order['order_id'] . "-" . Utils::generateRandomStr(6);
+        $order_data = [
+			'orderId' => $order_id,
+			'description' => "Order #{$order_id} from " . get_site_url(),
+			'receiveAmount' => round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2),
+			'receiveCurrencyCode' => $order['currency_code'],
+			'callbackUrl' => $this->url->link('extension/spectrocoin/payment/callback', '', true),
+			'successUrl' => $this->url->link('extension/spectrocoin/payment/accept', '', true),
+			'failureUrl' => $this->url->link('extension/spectrocoin/payment/cancel', '', true),
+		];
 
-        $currency = $order['currency_code'];
-        $amount =  round(($order['total'] * $this->currency->getvalue($order['currency_code'])),2);
-        $order_id = (int)$order['order_id'];
-        $description = "Order #{$order_id}";
-
-        $callback_url = $this->url->link('extension/spectrocoin/payment/callback', '', true);
-        $success_url = $this->url->link('extension/spectrocoin/payment/accept', '', true);
-        $failure_url = $this->url->link('extension/spectrocoin/payment/cancel', '', true);
-
-        $sc_merchant_client = new SCMerchantClient($this->registry, $this->session, $project_id, $sc_merchant_client_id, $sc_merchant_client_secret);
-        $order_request = new SpectroCoin_CreateOrderRequest(
-            $order_id . "-" . $this->random_str(5),
-            $description,
-            null, 
-            'BTC',
-            $amount, 
-            $currency, 
-            $callback_url, 
-            $success_url, 
-            $failure_url
-        );
-        $response = $client->spectrocoinCreateOrder($order_request);
-        if ($response instanceof SpectroCoin_ApiError) {
+        $response = $sc_merchant_client->spectrocoinCreateOrder($order_data);
+        
+        if ($response instanceof ApiError || $response instanceof GenericError) {
             $this->log->write('SpectroCoin Error: error during creating order.'." File: " . __FILE__ . " Line: " . __LINE__ );
             $this->api_error($response); 
-        } 
-        else if($response == null){
-            $this->log->write('SpectroCoin Error: error during creating order, response is null' . " File: " . __FILE__ . " Line: " . __LINE__ );
-            $this->api_error('');
         } 
         else {
             $redirect_url = $response->getRedirectUrl();
@@ -109,15 +94,4 @@ class Spectrocoin extends \Opencart\System\Engine\Controller
 
         $this->response->setOutput($this->load->view($template, $data));
     }
-
-    /**
-	 * Generate random string
-	 * @param int $length
-	 * @return string
-	 */
-	private function random_str($length)
-	{
-		return substr(md5(rand(1, pow(2, 16))), 0, $length);
-	}
-
 }

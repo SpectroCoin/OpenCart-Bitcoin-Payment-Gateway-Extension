@@ -32,8 +32,7 @@ class Callback extends Controller
                 $this->log->write('SpectroCoin Error: Invalid callback data');
                 exit;
             }
-    
-            $order_id = (int) $order_callback->getOrderId();
+            $order_id = explode("-", ($order_callback->getOrderId()))[0];
             $order = $this->model_checkout_order->getOrder($order_id);    
             $status = $order_callback->getStatus();
             if ($order){

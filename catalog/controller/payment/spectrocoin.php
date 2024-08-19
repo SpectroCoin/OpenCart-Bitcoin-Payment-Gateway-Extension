@@ -34,6 +34,14 @@ class Spectrocoin extends Controller
         }
     }
 
+    /**
+     * Handles the confirmation of the SpectroCoin payment.
+     *
+     * This method validates the configuration, creates the order, and redirects the user
+     * to the payment provider's site. If any error occurs, it displays an error form.
+     *
+     * @return void
+     */
     public function confirm(): void
     {
         $project_id = $this->config->get('payment_spectrocoin_project');
@@ -42,16 +50,19 @@ class Spectrocoin extends Controller
 
         if (empty($project_id)) {
             $this->log->write('SpectroCoin Error: The project ID is missing in the configuration.');
+            $this->display_error_form('The project ID is missing in the payment configuration.');
             return;
         }
 
         if (empty($client_id)) {
             $this->log->write('SpectroCoin Error: The client ID is missing in the configuration.');
+            $this->display_error_form('The client ID is missing in the payment configuration.');
             return;
         }
 
         if (empty($client_secret)) {
             $this->log->write('SpectroCoin Error: The client secret is missing in the configuration.');
+            $this->display_error_form('The client secret is missing in the payment configuration.');
             return;
         }
 
@@ -87,24 +98,38 @@ class Spectrocoin extends Controller
 
         $response = $sc_merchant_client->createOrder($order_data);
 
-        if ($response instanceof ApiError || $response instanceof GenericError) {
+        if ($response instanceof ApiError) {
             $this->log->write('SpectroCoin Error: Error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
-            $this->api_error($response);
+            $this->display_error_form($response->getMessage(), $response->getCode());
+            return;
+        } elseif ($response instanceof GenericError) {
+            $this->log->write('SpectroCoin Error: Error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
+            $this->display_error_form($response->getMessage());
+            return;
         } else {
             $redirect_url = $response->getRedirectUrl();
             $this->model_checkout_order->addHistory($order_id, 1);
             $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(['url' => $redirect_url]) . '\' WHERE order_id=\'' . $order_id . '\'');
             header('Location: ' . $redirect_url);
+            exit;  // Ensure no further processing occurs after redirection
         }
     }
 
-    public function api_error(ApiError|GenericError $response): void
+    /**
+     * Displays a custom error form with the provided error message, and optionally, an error code.
+     *
+     * @param string $error_message The error message to display.
+     * @param int $error_code The error code to display, default is 0 (no code).
+     *
+     * @return void
+     */
+    public function display_error_form(string $error_message, int $error_code = 0): void
     {
-        $template = 'extension/spectrocoin/payment/spectrocoin_api_error';
-        $data['css_path'] = 'extension/spectrocoin/catalog/view/stylesheet/spectrocoin_api_error.css';
-        $data['js_path'] = 'extension/spectrocoin/catalog/view/javascript/payment/spectrocoin_api_error.js';
-        $data['error_code'] = $response->getCode();
-        $data['error_message'] = $response->getMessage();
+        $template = 'extension/spectrocoin/payment/spectrocoin_error_form';
+        $data['css_path'] = 'extension/spectrocoin/catalog/view/stylesheet/spectrocoin_error_form.css';
+        $data['js_path'] = 'extension/spectrocoin/catalog/view/javascript/payment/spectrocoin_error_form.js';
+        $data['error_code'] = $error_code;
+        $data['error_message'] = $error_message;
         $data['shop_link'] = $this->config->get('config_url');
 
         $this->response->setOutput($this->load->view($template, $data));

@@ -1,19 +1,17 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use Opencart\System\Engine\Controller;
 
-include_once('SCMerchantClient.php');
-include_once('Utils.php');
-include_once('Exception/ApiError.php');
-include_once('Exception/GenericError.php');
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCMerchantClient.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Exception/ApiError.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Exception/GenericError.php';
 
 class Spectrocoin extends Controller
 {
-    public function index(): string
+    public function index()
     {
         $data['action'] = $this->url->link('extension/spectrocoin/payment/spectrocoin.confirm', '', true);
         $data['button_confirm'] = $this->language->get('button_confirm');

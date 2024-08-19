@@ -1,19 +1,17 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-include_once('Config.php');
-include_once('Utils.php');
-include_once('Exception/ApiError.php');
-include_once('Exception/GenericError.php');
-include_once('Http/CreateOrderRequest.php');
-include_once('Http/CreateOrderResponse.php');
+require_once('Config.php');
+require_once('Utils.php');
+require_once('Exception/ApiError.php');
+require_once('Exception/GenericError.php');
+require_once('Http/CreateOrderRequest.php');
+require_once('Http/CreateOrderResponse.php');
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;

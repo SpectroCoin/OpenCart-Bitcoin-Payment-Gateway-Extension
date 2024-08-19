@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception;
 
 if (!defined('DIR_APPLICATION')) {

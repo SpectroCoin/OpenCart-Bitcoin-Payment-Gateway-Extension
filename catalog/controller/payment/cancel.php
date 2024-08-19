@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use Opencart\System\Engine\Controller;
 
 class Cancel extends Controller
 {
-    public function index(): void
+    public function index()
     {
         $this->load->model('checkout/order');
 

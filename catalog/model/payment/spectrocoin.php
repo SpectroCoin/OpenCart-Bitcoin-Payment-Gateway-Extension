@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Model\Extension\Spectrocoin\Payment;
 
 use Opencart\System\Engine\Model;

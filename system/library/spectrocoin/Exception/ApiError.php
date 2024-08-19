@@ -1,8 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception;
+
+include_once('GenericError.php');
 
 if (!defined('DIR_APPLICATION')) {
     die('Access denied.');

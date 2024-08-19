@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http;
 
 if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-include_once('Utils.php');
-include_once('Config.php');
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Config.php';
 
 use Exception;
 use InvalidArgumentException;

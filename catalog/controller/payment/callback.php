@@ -1,11 +1,8 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-include_once('Http/OrderCallback.php');
-include_once('Http/OrderStatus.php');
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Http/OrderCallback.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Http/OrderStatus.php';
 
 use Exception;
 use InvalidArgumentException;
@@ -16,7 +13,7 @@ use Opencart\System\Engine\Controller;
 
 class Callback extends Controller
 {
-    public function index(): void
+    public function index()
     {
         try{
             $this->load->model('checkout/order');

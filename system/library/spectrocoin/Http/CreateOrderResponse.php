@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http;
 
 if (!defined('DIR_APPLICATION')) {
@@ -10,7 +8,7 @@ if (!defined('DIR_APPLICATION')) {
 
 use InvalidArgumentException;
 
-include_once('Utils.php');
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
 
 class CreateOrderResponse
 {

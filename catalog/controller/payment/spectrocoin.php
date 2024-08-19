@@ -6,10 +6,10 @@ namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use Opencart\System\Engine\Controller;
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCMerchantClient;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
+include_once('SCMerchantClient.php');
+include_once('Utils.php');
+include_once('Exception/ApiError.php');
+include_once('Exception/GenericError.php');
 
 class Spectrocoin extends Controller
 {

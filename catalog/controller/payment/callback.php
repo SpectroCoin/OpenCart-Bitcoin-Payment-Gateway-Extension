@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Enum\OrderStatus;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\OrderCallback;
+include_once('Http/OrderCallback.php');
+include_once('Http/OrderStatus.php');
 
 use Exception;
 use InvalidArgumentException;

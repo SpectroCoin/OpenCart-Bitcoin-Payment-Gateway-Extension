@@ -8,9 +8,9 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
-
 use InvalidArgumentException;
+
+include_once('Utils.php');
 
 class CreateOrderRequest
 {

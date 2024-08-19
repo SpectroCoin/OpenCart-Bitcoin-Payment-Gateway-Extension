@@ -10,7 +10,7 @@ if (!defined('DIR_APPLICATION')) {
 
 use InvalidArgumentException;
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
+include_once('Utils.php');
 
 class CreateOrderResponse
 {

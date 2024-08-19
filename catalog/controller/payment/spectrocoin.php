@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use Opencart\System\Engine\Controller;
+
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCMerchantClient;
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;

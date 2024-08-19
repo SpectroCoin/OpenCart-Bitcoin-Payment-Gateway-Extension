@@ -13,6 +13,10 @@ class ComposerStaticInit4b55c7ef33235a0353c1b6b079f86964
     );
 
     public static $prefixLengthsPsr4 = array (
+        'S' => 
+        array (
+            'SpectroCoin\\SCMerchantClient\\' => 29,
+        ),
         'P' => 
         array (
             'Psr\\Http\\Message\\' => 17,
@@ -27,6 +31,10 @@ class ComposerStaticInit4b55c7ef33235a0353c1b6b079f86964
     );
 
     public static $prefixDirsPsr4 = array (
+        'SpectroCoin\\SCMerchantClient\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/system/library/spectrocoin/SCMerchantClient',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',

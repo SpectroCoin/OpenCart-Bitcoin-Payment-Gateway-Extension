@@ -8,12 +8,12 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Config;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderRequest;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderResponse;
+include_once('Config.php');
+include_once('Utils.php');
+include_once('Exception/ApiError.php');
+include_once('Exception/GenericError.php');
+include_once('Http/CreateOrderRequest.php');
+include_once('Http/CreateOrderResponse.php');
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -51,12 +51,10 @@ class SCMerchantClient
         $this->project_id = $project_id;
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
-
-        $this->encryption_key = $this->initializeEncryptionKey();
         $this->http_client = new Client();
 
         $uniqueKeyParts = [
-			$this->registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
+			$this->opencart_registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
 			DB_PREFIX,
 		];
 	
@@ -65,7 +63,7 @@ class SCMerchantClient
 		if (!empty($uniqueKeyParts)) {
 			$this->encryption_key = hash('sha256', implode(':', $uniqueKeyParts));
 		} else {
-			throw new Exception('Failed to generate a unique encryption key.');
+			throw new Exception('Failed to generate an encryption key.');
 		}
 
     }
@@ -215,7 +213,7 @@ class SCMerchantClient
      */
     private function storeEncryptedData(string $encrypted_access_token_data): void
     {
-        $this->session->data['spectrocoin_auth_token'] = $encrypted_access_token_data;
+        $this->opencart_session->data['spectrocoin_auth_token'] = $encrypted_access_token_data;
     }
 
     /**
@@ -225,6 +223,6 @@ class SCMerchantClient
      */
     private function retrieveEncryptedData(): ?string
     {
-        return $this->session->data['spectrocoin_auth_token'] ?? null;
+        return $this->opencart_session->data['spectrocoin_auth_token'] ?? null;
     }
 }

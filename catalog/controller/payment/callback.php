@@ -6,8 +6,6 @@ namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Enum\OrderStatus;
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\OrderCallback;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
 
 use Exception;
 use InvalidArgumentException;

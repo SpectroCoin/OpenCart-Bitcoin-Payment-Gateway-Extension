@@ -52,19 +52,19 @@ class Spectrocoin extends Controller
         $data['breadcrumbs'] = [
             [
                 'text' => $this->language->get('text_home'),
-                'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL')
+                'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
             ],
             [
                 'text' => $this->language->get('text_payment'),
-                'href' => $this->url->link('extension/payment', 'user_token=' . $this->session->data['user_token'], 'SSL')
+                'href' => $this->url->link('extension/payment', 'user_token=' . $this->session->data['user_token'], true)
             ],
             [
                 'text' => $this->language->get('heading_title'),
-                'href' => $this->url->link('extension/spectrocoin/payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], 'SSL')
+                'href' => $this->url->link('extension/spectrocoin/payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], true)
             ]
         ];
 
-        $data['action'] = $this->url->link('extension/spectrocoin/payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], 'SSL');
+        $data['action'] = $this->url->link('extension/spectrocoin/payment/spectrocoin', 'user_token=' . $this->session->data['user_token'], true);
         $data['cancel'] = HTTP_SERVER . 'index.php?route=extension/payment&user_token=' . $this->session->data['user_token'];
 
         $keys = [

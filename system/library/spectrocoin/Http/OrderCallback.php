@@ -8,8 +8,8 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Utils;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Config;
+include_once('Utils.php');
+include_once('Config.php');
 
 use Exception;
 use InvalidArgumentException;

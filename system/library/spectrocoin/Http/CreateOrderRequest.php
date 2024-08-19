@@ -8,7 +8,9 @@ if (!defined('DIR_APPLICATION')) {
 
 use InvalidArgumentException;
 
-require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCUtils.php';
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCUtils;
 
 class CreateOrderRequest
 {
@@ -28,13 +30,13 @@ class CreateOrderRequest
      * @throws InvalidArgumentException
      */
     public function __construct(array $data) {
-        $this->orderId = isset($data['orderId']) ? Utils::sanitize_text_field((string)$data['orderId']) : null;
-        $this->description = isset($data['description']) ? Utils::sanitize_text_field((string)$data['description']) : null;
-        $this->receiveAmount = isset($data['receiveAmount']) ? Utils::sanitize_text_field((string)$data['receiveAmount']) : null;
-        $this->receiveCurrencyCode = isset($data['receiveCurrencyCode']) ? Utils::sanitize_text_field((string)$data['receiveCurrencyCode']) : null;
-        $this->callbackUrl = isset($data['callbackUrl']) ? Utils::sanitizeUrl($data['callbackUrl']) : null;
-        $this->successUrl = isset($data['successUrl']) ? Utils::sanitizeUrl($data['successUrl']) : null;
-        $this->failureUrl = isset($data['failureUrl']) ? Utils::sanitizeUrl($data['failureUrl']) : null;
+        $this->orderId = isset($data['orderId']) ? SCUtils::sanitize_text_field((string)$data['orderId']) : null;
+        $this->description = isset($data['description']) ? SCUtils::sanitize_text_field((string)$data['description']) : null;
+        $this->receiveAmount = isset($data['receiveAmount']) ? SCUtils::sanitize_text_field((string)$data['receiveAmount']) : null;
+        $this->receiveCurrencyCode = isset($data['receiveCurrencyCode']) ? SCUtils::sanitize_text_field((string)$data['receiveCurrencyCode']) : null;
+        $this->callbackUrl = isset($data['callbackUrl']) ? SCUtils::sanitizeUrl($data['callbackUrl']) : null;
+        $this->successUrl = isset($data['successUrl']) ? SCUtils::sanitizeUrl($data['successUrl']) : null;
+        $this->failureUrl = isset($data['failureUrl']) ? SCUtils::sanitizeUrl($data['failureUrl']) : null;
 
         $validation = $this->validate();
         if (is_array($validation)) {
@@ -105,7 +107,7 @@ class CreateOrderRequest
 
     public function getOrderId() { return $this->orderId; }
     public function getDescription() { return $this->description; }
-    public function getReceiveAmount() { return Utils::formatCurrency((float)$this->receiveAmount); }
+    public function getReceiveAmount() { return SCUtils::formatCurrency((float)$this->receiveAmount); }
     public function getReceiveCurrencyCode() { return $this->receiveCurrencyCode; }
     public function getCallbackUrl() { return $this->callbackUrl; }
     public function getSuccessUrl() { return $this->successUrl; }

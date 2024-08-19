@@ -2,7 +2,10 @@
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 
 require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Http/OrderCallback.php';
-require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Http/OrderStatus.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Enum/OrderStatus.php';
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\OrderCallback;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\OrderStatus\OrderStatus;
 
 use Exception;
 use InvalidArgumentException;

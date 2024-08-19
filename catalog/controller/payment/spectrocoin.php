@@ -5,9 +5,14 @@ namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
 use Opencart\System\Engine\Controller;
 
 require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCMerchantClient.php';
-require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCUtils.php';
 require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Exception/ApiError.php';
 require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Exception/GenericError.php';
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCMerchantClient;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCUtils;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
 
 class Spectrocoin extends Controller
 {
@@ -84,10 +89,10 @@ class Spectrocoin extends Controller
             $client_secret
         );
 
-        $order_id = $order['order_id'] . "-" . Utils::generateRandomStr(6);
+        $order_id = $order['order_id'] . "-" . SCUtils::generateRandomStr(6);
         $order_data = [
             'orderId' => $order_id,
-            'description' => "Order #{$order_id} from " . get_site_url(),
+            'description' => "Order #{$order_id}",
             'receiveAmount' => round(($order['total'] * $this->currency->getValue($order['currency_code'])), 2),
             'receiveCurrencyCode' => $order['currency_code'],
             'callbackUrl' => $this->url->link('extension/spectrocoin/payment/callback', '', true),

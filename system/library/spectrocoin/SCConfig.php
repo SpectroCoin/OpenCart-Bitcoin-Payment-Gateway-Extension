@@ -6,7 +6,7 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-class Config
+class SCConfig
 {
     const MERCHANT_API_URL = 'https://test.spectrocoin.com/api/public';
     const AUTH_URL = 'https://test.spectrocoin.com/api/public/oauth/token';

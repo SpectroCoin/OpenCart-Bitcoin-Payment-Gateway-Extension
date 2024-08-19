@@ -6,7 +6,7 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-class Utils
+class SCUtils
 {
     /**
      * Get the plugin folder name.

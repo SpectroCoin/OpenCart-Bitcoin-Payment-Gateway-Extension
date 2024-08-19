@@ -6,12 +6,19 @@ if (!defined('DIR_APPLICATION')) {
     die('Access denied.');
 }
 
-require_once('Config.php');
-require_once('Utils.php');
-require_once('Exception/ApiError.php');
+require_once('SCConfig.php');
+require_once('SCUtils.php');
 require_once('Exception/GenericError.php');
 require_once('Http/CreateOrderRequest.php');
 require_once('Http/CreateOrderResponse.php');
+require_once('Exception/ApiError.php');
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCConfig;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCUtils;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderRequest;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderResponse;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -20,6 +27,7 @@ use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
 use Exception;
 use RuntimeException;
+
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
@@ -75,7 +83,7 @@ class SCMerchantClient
     public function createOrder(array $order_data)
     {
         $access_token_data = $this->getAccessTokenData();
-
+        $api_error = new ApiError('Failed to get access token data');
         if (!$access_token_data || $access_token_data instanceof ApiError) {
             return $access_token_data;
         }
@@ -101,7 +109,7 @@ class SCMerchantClient
     private function sendCreateOrderRequest(string $order_payload)
     {
         try {
-            $response = $this->http_client->request('POST', Config::MERCHANT_API_URL . '/merchants/orders/create', [
+            $response = $this->http_client->request('POST', SCConfig::MERCHANT_API_URL . '/merchants/orders/create', [
                 RequestOptions::HEADERS => [
                     'Authorization' => 'Bearer ' . $this->getAccessTokenData()['access_token'],
                     'Content-Type' => 'application/json'
@@ -149,7 +157,7 @@ class SCMerchantClient
         $current_time = time();
         $encrypted_access_token_data = $this->retrieveEncryptedData();
         if ($encrypted_access_token_data) {
-            $access_token_data = json_decode(Utils::DecryptAuthData($encrypted_access_token_data, $this->encryption_key), true);
+            $access_token_data = json_decode(SCUtils::DecryptAuthData($encrypted_access_token_data, $this->encryption_key), true);
             if ($this->isTokenValid($access_token_data, $current_time)) {
                 return $access_token_data;
             }
@@ -167,7 +175,7 @@ class SCMerchantClient
     public function refreshAccessToken(int $current_time): array|ApiError
     {
         try {
-            $response = $this->http_client->post(Config::AUTH_URL, [
+            $response = $this->http_client->post(SCConfig::AUTH_URL, [
                 'form_params' => [
                     'grant_type' => 'client_credentials',
                     'client_id' => $this->client_id,
@@ -181,7 +189,7 @@ class SCMerchantClient
             }
     
             $access_token_data['expires_at'] = $current_time + $access_token_data['expires_in'];
-            $encrypted_access_token_data = Utils::encryptAuthData(json_encode($access_token_data), $this->encryption_key);
+            $encrypted_access_token_data = SCUtils::encryptAuthData(json_encode($access_token_data), $this->encryption_key);
     
             $this->storeEncryptedData($encrypted_access_token_data);
     

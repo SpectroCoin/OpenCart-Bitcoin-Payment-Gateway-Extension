@@ -8,7 +8,9 @@ if (!defined('DIR_APPLICATION')) {
 
 use InvalidArgumentException;
 
-require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Utils.php';
+require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/SCUtils.php';
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCUtils;
 
 class CreateOrderResponse
 {
@@ -31,17 +33,17 @@ class CreateOrderResponse
      */
     public function __construct(array $data)
     {
-        $this->preOrderId = isset($data['preOrderId']) ? Utils::sanitize_text_field((string)$data['preOrderId']) : null;
-        $this->orderId = isset($data['orderId']) ? Utils::sanitize_text_field((string)$data['orderId']) : null;
-        $this->validUntil = isset($data['validUntil']) ? Utils::sanitize_text_field((string)$data['validUntil']) : null;
-        $this->payCurrencyCode = isset($data['payCurrencyCode']) ? Utils::sanitize_text_field((string)$data['payCurrencyCode']) : null;
-        $this->payNetworkCode = isset($data['payNetworkCode']) ? Utils::sanitize_text_field((string)$data['payNetworkCode']) : null;
-        $this->receiveCurrencyCode = isset($data['receiveCurrencyCode']) ? Utils::sanitize_text_field((string)$data['receiveCurrencyCode']) : null;
-        $this->payAmount = isset($data['payAmount']) ? Utils::sanitize_text_field((string)$data['payAmount']) : null;
-        $this->receiveAmount = isset($data['receiveAmount']) ? Utils::sanitize_text_field((string)$data['receiveAmount']) : null;
-        $this->depositAddress = isset($data['depositAddress']) ? Utils::sanitize_text_field((string)$data['depositAddress']) : null;
-        $this->memo = isset($data['memo']) ? Utils::sanitize_text_field((string)$data['memo']) : null;
-        $this->redirectUrl = isset($data['redirectUrl']) ? Utils::sanitizeUrl($data['redirectUrl']) : null;
+        $this->preOrderId = isset($data['preOrderId']) ? SCUtils::sanitize_text_field((string)$data['preOrderId']) : null;
+        $this->orderId = isset($data['orderId']) ? SCUtils::sanitize_text_field((string)$data['orderId']) : null;
+        $this->validUntil = isset($data['validUntil']) ? SCUtils::sanitize_text_field((string)$data['validUntil']) : null;
+        $this->payCurrencyCode = isset($data['payCurrencyCode']) ? SCUtils::sanitize_text_field((string)$data['payCurrencyCode']) : null;
+        $this->payNetworkCode = isset($data['payNetworkCode']) ? SCUtils::sanitize_text_field((string)$data['payNetworkCode']) : null;
+        $this->receiveCurrencyCode = isset($data['receiveCurrencyCode']) ? SCUtils::sanitize_text_field((string)$data['receiveCurrencyCode']) : null;
+        $this->payAmount = isset($data['payAmount']) ? SCUtils::sanitize_text_field((string)$data['payAmount']) : null;
+        $this->receiveAmount = isset($data['receiveAmount']) ? SCUtils::sanitize_text_field((string)$data['receiveAmount']) : null;
+        $this->depositAddress = isset($data['depositAddress']) ? SCUtils::sanitize_text_field((string)$data['depositAddress']) : null;
+        $this->memo = isset($data['memo']) ? SCUtils::sanitize_text_field((string)$data['memo']) : null;
+        $this->redirectUrl = isset($data['redirectUrl']) ? SCUtils::sanitizeUrl($data['redirectUrl']) : null;
 
         $validation = $this->validate();
         if (is_array($validation)) {

@@ -102,13 +102,9 @@ class Spectrocoin extends Controller
 
         $response = $sc_merchant_client->createOrder($order_data);
 
-        if ($response instanceof ApiError) {
+        if ($response instanceof ApiError || $response instanceof GenericError) {
             $this->log->write('SpectroCoin Error: Error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
             $this->display_error_form($response->getMessage(), $response->getCode());
-            return;
-        } elseif ($response instanceof GenericError) {
-            $this->log->write('SpectroCoin Error: Error during creating order.' . " File: " . __FILE__ . " Line: " . __LINE__);
-            $this->display_error_form($response->getMessage());
             return;
         } else {
             $redirect_url = $response->getRedirectUrl();

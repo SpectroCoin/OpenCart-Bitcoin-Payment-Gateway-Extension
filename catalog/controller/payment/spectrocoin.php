@@ -115,7 +115,7 @@ class Spectrocoin extends Controller
             $this->model_checkout_order->addHistory($order_id, 1);
             $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(['url' => $redirect_url]) . '\' WHERE order_id=\'' . $order_id . '\'');
             header('Location: ' . $redirect_url);
-            exit;  // Ensure no further processing occurs after redirection
+            exit;
         }
     }
 

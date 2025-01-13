@@ -28,24 +28,39 @@ Integrate cryptocurrency payments seamlessly into your OpenCart store with the [
 
 ## Test order creation on localhost
 
-We gently suggest trying out the plugin in a server environment, as it will not be capable of receiving callbacks from SpectroCoin if it will be hosted on localhost. To successfully create an order on localhost for testing purposes, <b>change these 3 lines in <em>SCMechantClient.php spectrocoinCreateOrder() function</em></b>:
+We gently suggest trying out the plugin in a server environment, as it will not be capable of receiving callbacks from SpectroCoin if it will be hosted on localhost. To successfully create an order on localhost for testing purposes, <b>change these 3 lines in <em>CreateOrderRequest.php</em></b>:
 
-`'callbackUrl' => $request->getCallbackUrl()`, <br>
-`'successUrl' => $request->getSuccessUrl()`, <br>
-`'failureUrl' => $request->getFailureUrl()`
+`$this->callbackUrl = isset($data['callbackUrl']) ? Utils::sanitizeUrl($data['callbackUrl']) : null;`, <br>
+`$this->successUrl = isset($data['successUrl']) ? Utils::sanitizeUrl($data['successUrl']) : null;`, <br>
+`$this->failureUrl = isset($data['failureUrl']) ? Utils::sanitizeUrl($data['failureUrl']) : null;`
 
 <b>To</b>
 
-`'callbackUrl' => 'http://localhost.com'`, <br>
-`'successUrl' => 'http://localhost.com'`, <br>
-`'failureUrl' => 'http://localhost.com'`
+`$this->callbackUrl = "https://localhost.com/";`, <br>
+`$this->successUrl = "https://localhost.com/";`, <br>
+`$this->failureUrl = "https://localhost.com/";`
 
-Adjust it appropriately if your local environment URL differs.
 Don't forget to change it back when migrating website to public.
+
+## Testing Callbacks
+
+Order callbacks in the SpectroCoin plugin allow your WordPress site to automatically process order status changes sent from SpectroCoin. These callbacks notify your server when an order’s status transitions to PAID, EXPIRED, or FAILED. Understanding and testing this functionality ensures your store handles payments accurately and updates order statuses accordingly.
+ 
+1. Go to your SpectroCoin project settings and enable **Test Mode**.
+2. Simulate a payment status:
+   - **PAID**: Sends a callback to mark the order as **Completed** in WordPress.
+   - **EXPIRED**: Sends a callback to mark the order as **Failed** in WordPress.
+3. Ensure your `callbackUrl` is publicly accessible (local servers like `localhost` will not work).
+4. Check the **Order History** in SpectroCoin for callback details. If a callback fails, use the **Retry** button to resend it.
+5. Verify that:
+   - The **order status** in WordPress has been updated accordingly.
+   - The **callback status** in the SpectroCoin dashboard is `200 OK`.
 
 ## Changelog
 
 ### 2.0.0 ()
+
+This major update introduces several improvements, including enhanced security, updated coding standards, and a streamlined integration process. **Important:** Users must generate new API credentials (Client ID and Client Secret) in their SpectroCoin account settings to continue using the extension. The previous private key and merchant ID functionality have been deprecated.
 
 _Updated_: Order creation API endpoint has been updated for enhanced performance and security.
 
@@ -61,35 +76,47 @@ _Reworked_: SpectroCoin callback handling was reworked. Added appropriate callba
 
 _Updated_: Instead of using outdated addOrderHistory for changing the order status, we now use the new addHistory method.
 
+_Updated_ Class and some method names have been updated based on PSR-12 standards.
+
+_Updated_ Composer class autoloading has been implemented.
+
+_Added_ _Config.php_ file has been added to store plugin configuration.
+
+_Added_ _Utils.php_ file has been added to store utility functions.
+
+_Added_ _GenericError.php_ file has been added to handle generic errors.
+
+_Added_ Strict types have been added to all classes.
+
 ### 1.0.0 ()
 
-_Updated_: Order creation API endpoint has been updated for enhanced performance and security.
+_Updated_ Order creation API endpoint has been updated for enhanced performance and security.
 
-_Removed_: Private key functionality and merchant ID requirement have been removed to streamline integration.
+_Removed_ Private key functionality and merchant ID requirement have been removed to streamline integration.
 
-_Added_: OAuth functionality introduced for authentication, requiring Client ID and Client Secret for secure API access.
+_Added_ OAuth functionality introduced for authentication, requiring Client ID and Client Secret for secure API access.
 
-_Added:_ Enhanced the style of the admin's payment settings window to match the design of SpectroCoin.com, providing a more cohesive user experience.
+_Added_ Enhanced the style of the admin's payment settings window to match the design of SpectroCoin.com, providing a more cohesive user experience.
 
-Migrated: Since HTTPful is no longer maintained, we migrated to GuzzleHttp. In this case /vendor directory was added which contains GuzzleHttp dependencies.
+_Migrated_ Since HTTPful is no longer maintained, we migrated to GuzzleHttp. In this case /vendor directory was added which contains GuzzleHttp dependencies.
 
-Added: Settings field sanitization.
+_Added_ Settings field sanitization.
 
-Added: Settings field validation. In this case we minimized possible error count during checkout, SpectroCoin won't appear in checkout until settings validation is passed.
+Added Settings field validation. In this case we minimized possible error count during checkout, SpectroCoin won't appear in checkout until settings validation is passed.
 
-_Added_: "spectrocoin\_" prefix to functiton names.
+_Added_ "spectrocoin\_" prefix to functiton names.
 
-_Added_: "SpectroCoin\_" prefix to class names.
+_Added_ "SpectroCoin\_" prefix to class names.
 
-_Added_: Validation and Sanitization when request payload is created.
+_Added_ Validation and Sanitization when request payload is created.
 
-_Added_: Validation and Sanitization when callback is received.
+_Added_ Validation and Sanitization when callback is received.
 
-_Added_: Components class "SpectroCoin_FormattingUtil" changed to "SpectroCoin_Utilities".
+_Added_ Components class "SpectroCoin_FormattingUtil" changed to "SpectroCoin_Utilities".
 
-_Added_: Appropriate error logging to OpenCart admin.
+_Added_ Appropriate error logging to OpenCart admin.
 
-_Added_: API error form.
+_Added_ API error form.
 
 _Optimised_: Removed the The whole $\_REQUEST stack processing. Now only needed callback keys is being processed.
 

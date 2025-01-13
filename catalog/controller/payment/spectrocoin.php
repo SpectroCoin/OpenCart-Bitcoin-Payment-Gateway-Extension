@@ -89,10 +89,10 @@ class Spectrocoin extends Controller
             $client_secret
         );
 
-        $order_id = $order['order_id'] . "-" . SCUtils::generateRandomStr(6);
+        $spectrocoin_order_id = $order['order_id'] . "-" . SCUtils::generateRandomStr(6);
         $order_data = [
-            'orderId' => $order_id,
-            'description' => "Order #{$order_id}",
+            'orderId' => $spectrocoin_order_id,
+            'description' => "Order #{$spectrocoin_order_id}",
             'receiveAmount' => round(($order['total'] * $this->currency->getValue($order['currency_code'])), 2),
             'receiveCurrencyCode' => $order['currency_code'],
             'callbackUrl' => $this->url->link('extension/spectrocoin/payment/callback', '', true),
@@ -108,8 +108,10 @@ class Spectrocoin extends Controller
             return;
         } else {
             $redirect_url = $response->getRedirectUrl();
-            $this->model_checkout_order->addHistory($order_id, 1);
-            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field =\'' . serialize(['url' => $redirect_url]) . '\' WHERE order_id=\'' . $order_id . '\'');
+            $this->model_checkout_order->addHistory($order['order_id'], 1);
+    
+            $this->db->query('UPDATE `' . DB_PREFIX . 'order` SET custom_field = \'' . serialize(['url' => $redirect_url]) . '\' WHERE order_id = \'' . (int)$order['order_id'] . '\'');
+        
             header('Location: ' . $redirect_url);
             exit;
         }

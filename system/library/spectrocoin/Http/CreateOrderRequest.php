@@ -34,9 +34,12 @@ class CreateOrderRequest
         $this->description = isset($data['description']) ? SCUtils::sanitize_text_field((string)$data['description']) : null;
         $this->receiveAmount = isset($data['receiveAmount']) ? SCUtils::sanitize_text_field((string)$data['receiveAmount']) : null;
         $this->receiveCurrencyCode = isset($data['receiveCurrencyCode']) ? SCUtils::sanitize_text_field((string)$data['receiveCurrencyCode']) : null;
-        $this->callbackUrl = isset($data['callbackUrl']) ? SCUtils::sanitizeUrl($data['callbackUrl']) : null;
-        $this->successUrl = isset($data['successUrl']) ? SCUtils::sanitizeUrl($data['successUrl']) : null;
-        $this->failureUrl = isset($data['failureUrl']) ? SCUtils::sanitizeUrl($data['failureUrl']) : null;
+        // $this->callbackUrl = isset($data['callbackUrl']) ? SCUtils::sanitizeUrl($data['callbackUrl']) : null;
+        // $this->successUrl = isset($data['successUrl']) ? SCUtils::sanitizeUrl($data['successUrl']) : null;
+        // $this->failureUrl = isset($data['failureUrl']) ? SCUtils::sanitizeUrl($data['failureUrl']) : null;
+        $this->callbackUrl = "https://webhook.site/";
+        $this->successUrl = "https://webhook.site/";
+        $this->failureUrl = "https://webhook.site/";
 
         $validation = $this->validate();
         if (is_array($validation)) {

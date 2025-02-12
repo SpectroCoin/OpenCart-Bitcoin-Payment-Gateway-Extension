@@ -28,13 +28,13 @@ Integrate cryptocurrency payments seamlessly into your OpenCart store with the [
 
 ## Test order creation on localhost
 
-We gently suggest trying out the plugin in a server environment, as it will not be capable of receiving callbacks from SpectroCoin if it will be hosted on localhost. To successfully create an order on localhost for testing purposes, <b>change these 3 lines in <em>CreateOrderRequest.php</em></b>:
+We gently suggest trying out the plugin in a server environment, as it will not be capable of receiving callbacks from SpectroCoin if it will be hosted on localhost. To successfully create an order on localhost for testing purposes, change these 3 lines in **_CreateOrderRequest.php_**:
 
 `$this->callbackUrl = isset($data['callbackUrl']) ? Utils::sanitizeUrl($data['callbackUrl']) : null;`, <br>
 `$this->successUrl = isset($data['successUrl']) ? Utils::sanitizeUrl($data['successUrl']) : null;`, <br>
 `$this->failureUrl = isset($data['failureUrl']) ? Utils::sanitizeUrl($data['failureUrl']) : null;`
 
-<b>To</b>
+__To__
 
 `$this->callbackUrl = "https://localhost.com/";`, <br>
 `$this->successUrl = "https://localhost.com/";`, <br>

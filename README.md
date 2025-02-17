@@ -58,7 +58,7 @@ Order callbacks in the SpectroCoin plugin allow your WordPress site to automatic
 
 ## Changelog
 
-### 2.0.0 ()
+### 1.0.0 (02/17/2025)
 
 This major update introduces several improvements, including enhanced security, updated coding standards, and a streamlined integration process. **Important:** Users must generate new API credentials (Client ID and Client Secret) in their SpectroCoin account settings to continue using the extension. The previous private key and merchant ID functionality have been deprecated.
 
@@ -87,8 +87,6 @@ _Added_ _Utils.php_ file has been added to store utility functions.
 _Added_ _GenericError.php_ file has been added to handle generic errors.
 
 _Added_ Strict types have been added to all classes.
-
-### 1.0.0 ()
 
 _Updated_ Order creation API endpoint has been updated for enhanced performance and security.
 

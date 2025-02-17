@@ -1,17 +1,16 @@
 <?php
 
 namespace Opencart\Catalog\Model\Extension\Spectrocoin\Payment;
-class Spectrocoin extends \Opencart\System\Engine\Model {
-    public function getMethods($address) {
-        $this->load->language('extension/spectrocoin/payment/spectrocoin');
 
-        if ($this->config->get('payment_spectrocoin_status')) {
-            $status = true;
-        } else {
-            $status = false;
-        }
+use Opencart\System\Engine\Model;
+
+class Spectrocoin extends Model {
+    public function getMethods(array $address): array {
+        $this->load->language('extension/spectrocoin/payment/spectrocoin');
         
-        $method_data = array();
+        $status = $this->config->get('payment_spectrocoin_status') ? true : false;
+        
+        $method_data = [];
 
         $option_data = [];
 
@@ -22,12 +21,12 @@ class Spectrocoin extends \Opencart\System\Engine\Model {
 
         if ($status) {
             $title = $this->language->get('payment_spectrocoin_title') ? $this->config->get('payment_spectrocoin_title') : $this->language->get('text_default_title');
-            $method_data = array(
+            $method_data = [
                 'code'       => 'spectrocoin',
-                'name'      => $title,
-                'option'      => $option_data,
+                'name'       => $title,
+                'option'     => $option_data,
                 'sort_order' => $this->config->get('payment_spectrocoin_sort_order')
-            );
+            ];
         }
         return $method_data;
     }

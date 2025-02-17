@@ -1,0 +1,112 @@
+.flex-container {
+  display: flex !important;
+  gap: 60px !important;
+}
+
+.flex-left {
+  flex-basis: 50%;
+}
+
+.flex-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-basis: 50%;
+}
+
+.spectrocoin-logo {
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.spectrocoin-plugin-settings h3 {
+  font-family: Red Hat Text, sans-serif;
+  color: #102d6f;
+  font-size: 1.8rem;
+}
+
+.spectrocoin-plugin-settings h4 {
+  font-family: Red Hat Text, sans-serif;
+  color: #102d6f;
+  font-size: 1.4rem;
+}
+
+.flex-container .contact-information {
+  color: #102d6f;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  font-family: Red Hat Text, sans-serif;
+}
+
+.flex-container .input-text,
+.flex-container .select {
+  border: 1px solid #e6e8f0 !important;
+  font-size: 14px;
+  border-radius: 4px;
+  outline: none;
+  width: 80% !important;
+  transition: all 0.1s, visibility 0s;
+}
+
+.white-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 10px #4972f40d;
+  padding: 20px 15px;
+  flex-basis: 100%;
+}
+
+form {
+  margin-top: 10px;
+}
+
+@media only screen and (max-width: 960px) {
+  .flex-container {
+    flex-wrap: wrap;
+  }
+  .flex-left,
+  .flex-right {
+    flex-basis: 100% !important;
+  }
+  .flex-container .input-text,
+  .flex-container .select {
+    width: 100% !important;
+  }
+  .white-card {
+    margin-top: 0px;
+  }
+}
+
+.spectrocoin-logo {
+  height: 100%;
+  width: 270px;
+}
+
+.contact-information {
+  padding-top: 30px;
+  padding-bottom: 20px;
+  width: 100%;
+}
+
+#status-switch:checked {
+  background-color: #3d72fc;
+  border-color: #1e91cf;
+}
+
+#status-switch {
+  width: 3em;
+  height: 1.5em;
+}
+
+div.required:before {
+  content: "* ";
+  color: #f00;
+  font-weight: bold;
+  position: absolute;
+  left: 10px;
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>SpectroCoin: error</title>
+      <link rel="stylesheet" href="{{css_path}}" type="text/css" />
+   </head>
+   <body>
+      <div class="container full-screen">
+         <div class="content_container">
+            <div class="content_content">
+               <div class="form_body">
+                <h5>
+                  Error: 
+                  {% if error_code != 0 %}
+                     {{ error_code }} 
+                  {% endif %}
+                  {{ error_message }}
+               </h5>
+                  <a href="{{ shop_link }}"><button>Return to shop</button></a>
+               </div>
+            </div>
+            <div class="footer_container">
+               <div class="footer_link">
+                  <a href="mailto:merchant@spectrocoin.com">Contact support</a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+   <script src="{{ js_path }}"></script>
+</html>

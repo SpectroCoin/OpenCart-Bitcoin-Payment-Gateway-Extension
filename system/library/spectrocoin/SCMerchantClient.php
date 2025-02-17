@@ -1,175 +1,234 @@
 <?php
+
 namespace Opencart\Catalog\Controller\Extension\Spectrocoin\Payment;
-/**
- * Created by UAB Spectro Fincance.
- * This is a sample SpectroCoin Merchant v1.1 API PHP client
- */
 
-include_once('httpful.phar');
-include_once('components/FormattingUtil.php');
-include_once('data/ApiError.php');
-include_once('data/OrderStatusEnum.php');
-include_once('data/OrderCallback.php');
-include_once('messages/CreateOrderRequest.php');
-include_once('messages/CreateOrderResponse.php');
+if (!defined('DIR_APPLICATION')) {
+    die('Access denied.');
+}
 
+require_once('SCConfig.php');
+require_once('SCUtils.php');
+require_once('Exception/GenericError.php');
+require_once('Http/CreateOrderRequest.php');
+require_once('Http/CreateOrderResponse.php');
+require_once('Exception/ApiError.php');
+
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCConfig;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\SCUtils;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\GenericError;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderRequest;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\CreateOrderResponse;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Exception\ApiError;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\RequestOptions;
+
+use InvalidArgumentException;
+use Exception;
+use RuntimeException;
+
+
+require __DIR__ . '/../../../vendor/autoload.php';
 
 class SCMerchantClient
 {
+    private $opencart_registry;
+	private $opencart_session;
 
-	private $merchantApiUrl;
-	private $privateMerchantCertLocation;
-	private $publicSpectroCoinCertLocation;
+    private string $project_id;
+    private string $client_id;
+    private string $client_secret;
+    private string $encryption_key;
+    protected Client $http_client;
 
-	private $userId;
-	private $merchantApiId;
-	private $debug;
+    /**
+     * Constructor
+     * 
+     * @param string $project_id
+     * @param string $client_id
+     * @param string $client_secret
+     */
+    public function __construct($opencart_registry, $opencart_session, string $project_id, string $client_id, string $client_secret)
+    {
+        $this->opencart_registry = $opencart_registry;
+		$this->opencart_session = $opencart_session;
 
-	private $privateMerchantKey;
-	/**
-	 * @param $merchantApiUrl
-	 * @param $userId
-	 * @param $merchantApiId
-	 * @param bool $debug
-	 */
-	function __construct($merchantApiUrl, $userId, $merchantApiId, $debug = false)
-	{
-		$this->privateMerchantCertLocation = dirname(__FILE__) . '/../cert/mprivate.pem';
-		$this->publicSpectroCoinCertLocation = 'https://spectrocoin.com/files/merchant.public.pem';
-		$this->merchantApiUrl = $merchantApiUrl;
-		$this->userId = $userId;
-		$this->merchantApiId = $merchantApiId;
-		$this->debug = $debug;
-	}
+        $this->project_id = $project_id;
+        $this->client_id = $client_id;
+        $this->client_secret = $client_secret;
+        $this->http_client = new Client();
 
-	/**
-	 * @param $privateKey
-	 */
-	public function setPrivateMerchantKey($privateKey) {
-		$this->privateMerchantKey = $privateKey;
-	}
-	/**
-	 * @param CreateOrderRequest $request
-	 * @return ApiError|CreateOrderResponse
-	 */
-	public function createOrder(CreateOrderRequest $request)
-	{
-		$payload = array(
-			'userId' => $this->userId,
-			'merchantApiId' => $this->merchantApiId,
-			'orderId' => $request->getOrderId(),
-			'payCurrency' => $request->getPayCurrency(),
-			'payAmount' => $request->getPayAmount(),
-			'receiveCurrency' => $request->getReceiveCurrency(),
-			'receiveAmount' => $request->getReceiveAmount(),
-			'description' => $request->getDescription(),
-			'culture' => $request->getCulture(),
-			'callbackUrl' => $request->getCallbackUrl(),
-			'successUrl' => $request->getSuccessUrl(),
-			'failureUrl' => $request->getFailureUrl()
-		);
-
-		$formHandler = new \Httpful\Handlers\FormHandler();
-		$data = $formHandler->serialize($payload);
-		$signature = $this->generateSignature($data);
-		$payload['sign'] = $signature;
-		if (!$this->debug) {
-			$response = \Httpful\Request::post($this->merchantApiUrl . '/createOrder', $payload, \Httpful\Mime::FORM)->expects(\Httpful\Mime::JSON)->send();
-			if ($response != null) {
-				$body = $response->body;
-				if ($body != null) {
-					if (is_array($body) && count($body) > 0 && isset($body[0]->code)) {
-						return new ApiError($body[0]->code, $body[0]->message);
-					} else {
-						return new CreateOrderResponse($body->orderRequestId, $body->orderId, $body->depositAddress, $body->payAmount, $body->payCurrency, $body->receiveAmount, $body->receiveCurrency, $body->validUntil, $body->redirectUrl);
-					}
-				}
-			}
+        $uniqueKeyParts = [
+			$this->opencart_registry->get('config')->get('config_encryption'), // OpenCart's own encryption key
+			DB_PREFIX,
+		];
+	
+		$uniqueKeyParts = array_filter($uniqueKeyParts, function($value) { return !empty($value); });
+	
+		if (!empty($uniqueKeyParts)) {
+			$this->encryption_key = hash('sha256', implode(':', $uniqueKeyParts));
 		} else {
-			$response = \Httpful\Request::post($this->merchantApiUrl . '/createOrder', $payload, \Httpful\Mime::FORM)->send();
-			exit('<pre>'.print_r($response, true).'</pre>');
-		}
-	}
-
-	private function generateSignature($data)
-	{
-		$privateKey = $this->privateMerchantKey != null ? $this->privateMerchantKey : file_get_contents($this->privateMerchantCertLocation);
-		$pkeyid = openssl_pkey_get_private($privateKey);
-
-		// compute signature
-		$s = openssl_sign($data, $signature, $pkeyid, OPENSSL_ALGO_SHA1);
-		$encodedSignature = base64_encode($signature);
-
-		return $encodedSignature;
-	}
-
-	/**
-	 * @param $r $_REQUEST
-	 * @return OrderCallback|null
-	 */
-	public function parseCreateOrderCallback($r)
-	{
-		$result = null;
-
-		if ($r != null && isset($r['userId'], $r['merchantApiId'], $r['merchantId'], $r['apiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign'])) {
-			$result = new OrderCallback($r['userId'], $r['merchantApiId'], $r['merchantId'], $r['apiId'], $r['orderId'], $r['payCurrency'], $r['payAmount'], $r['receiveCurrency'], $r['receiveAmount'], $r['receivedAmount'], $r['description'], $r['orderRequestId'], $r['status'], $r['sign']);
+			throw new Exception('Failed to generate an encryption key.');
 		}
 
-		return $result;
-	}
+    }
 
-	/**
-	 * @param OrderCallback $c
-	 * @return bool
-	 */
-	public function validateCreateOrderCallback(OrderCallback $c)
-	{
-		$valid = false;
+    /**
+     * Create an order
+     * 
+     * @param array $order_data
+     * @return CreateOrderResponse|ApiError|GenericError|null
+     */
+    public function createOrder(array $order_data)
+    {
+        $access_token_data = $this->getAccessTokenData();
+        $api_error = new ApiError('Failed to get access token data');
+        if (!$access_token_data || $access_token_data instanceof ApiError) {
+            return $access_token_data;
+        }
 
-		if ($c != null) {
+        try {
+            $create_order_request = new CreateOrderRequest($order_data);
+        } catch (InvalidArgumentException $e) {
+            return new GenericError($e->getMessage(), $e->getCode());
+        }
 
-			if ($this->userId != $c->getUserId() || $this->merchantApiId != $c->getMerchantApiId())
-				return $valid;
+        $order_payload = $create_order_request->toArray();
+        $order_payload['projectId'] = $this->project_id;
 
-			if (!$c->validate())
-				return $valid;
+        return $this->sendCreateOrderRequest(json_encode($order_payload));
+    }
 
-			$payload = array(
-				'merchantId' => $c->getMerchantId(),
-				'apiId' => $c->getApiId(),
-				'orderId' => $c->getOrderId(),
-				'payCurrency' => $c->getPayCurrency(),
-				'payAmount' => $c->getPayAmount(),
-				'receiveCurrency' => $c->getReceiveCurrency(),
-				'receiveAmount' => $c->getReceiveAmount(),
-				'receivedAmount' => $c->getReceivedAmount(),
-				'description' => $c->getDescription(),
-				'orderRequestId' => $c->getOrderRequestId(),
-				'status' => $c->getStatus(),
-			);
+    /**
+     * Send create order request
+     * 
+     * @param string $order_payload
+     * @return CreateOrderResponse|ApiError|GenericError
+     */
+    private function sendCreateOrderRequest(string $order_payload)
+    {
+        try {
+            $response = $this->http_client->request('POST', SCConfig::MERCHANT_API_URL . '/merchants/orders/create', [
+                RequestOptions::HEADERS => [
+                    'Authorization' => 'Bearer ' . $this->getAccessTokenData()['access_token'],
+                    'Content-Type' => 'application/json'
+                ],
+                RequestOptions::BODY => $order_payload
+            ]);
 
-			$formHandler = new \Httpful\Handlers\FormHandler();
-			$data = $formHandler->serialize($payload);
-			$valid = $this->validateSignature($data, $c->getSign());
-		}
+            $body = json_decode($response->getBody()->getContents(), true);
 
-		return $valid;
-	}
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new RuntimeException('Failed to parse JSON response: ' . json_last_error_msg());
+            }
 
-	/**
-	 * @param $data
-	 * @param $signature
-	 * @return int
-	 */
-	private function validateSignature($data, $signature)
-	{
-		$sig = base64_decode($signature);
-		$publicKey = file_get_contents($this->publicSpectroCoinCertLocation);
-		$public_key_pem = openssl_pkey_get_public($publicKey);
-		$r = openssl_verify($data, $sig, $public_key_pem, OPENSSL_ALGO_SHA1);
-		openssl_free_key($public_key_pem);
+            $responseData = [
+                'preOrderId' => $body['preOrderId'] ?? null,
+                'orderId' => $body['orderId'] ?? null,
+                'validUntil' => $body['validUntil'] ?? null,
+                'payCurrencyCode' => $body['payCurrencyCode'] ?? null,
+                'payNetworkCode' => $body['payNetworkCode'] ?? null,
+                'receiveCurrencyCode' => $body['receiveCurrencyCode'] ?? null,
+                'payAmount' => $body['payAmount'] ?? null,
+                'receiveAmount' => $body['receiveAmount'] ?? null,
+                'depositAddress' => $body['depositAddress'] ?? null,
+                'memo' => $body['memo'] ?? null,
+                'redirectUrl' => $body['redirectUrl'] ?? null
+            ];
 
-		return $r;
-	}
+            return new CreateOrderResponse($responseData);
+        } catch (InvalidArgumentException $e) {
+            return new GenericError($e->getMessage(), $e->getCode());
+        } catch (RequestException $e) {
+            return new ApiError($e->getMessage(), $e->getCode());
+        } catch (Exception $e) {
+            return new GenericError($e->getMessage(), $e->getCode());
+        }
+    }
 
+    /**
+     * Retrieves the current access token data
+     * 
+     * @return array|null
+     */
+    public function getAccessTokenData()
+    {
+        $current_time = time();
+        $encrypted_access_token_data = $this->retrieveEncryptedData();
+        if ($encrypted_access_token_data) {
+            $access_token_data = json_decode(SCUtils::DecryptAuthData($encrypted_access_token_data, $this->encryption_key), true);
+            if ($this->isTokenValid($access_token_data, $current_time)) {
+                return $access_token_data;
+            }
+        }
+        return $this->refreshAccessToken($current_time);
+    }
+
+    /**
+     * Refreshes the access token
+     * 
+     * @param int $current_time
+     * @return array|ApiError
+     * @throws RequestException
+     */
+    public function refreshAccessToken(int $current_time): array|ApiError
+    {
+        try {
+            $response = $this->http_client->post(SCConfig::AUTH_URL, [
+                'form_params' => [
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $this->client_id,
+                    'client_secret' => $this->client_secret,
+                ],
+            ]);
+    
+            $access_token_data = json_decode((string) $response->getBody(), true);
+            if (!isset($access_token_data['access_token'], $access_token_data['expires_in'])) {
+                return new ApiError('Invalid access token response');
+            }
+    
+            $access_token_data['expires_at'] = $current_time + $access_token_data['expires_in'];
+            $encrypted_access_token_data = SCUtils::encryptAuthData(json_encode($access_token_data), $this->encryption_key);
+    
+            $this->storeEncryptedData($encrypted_access_token_data);
+    
+            return $access_token_data;
+    
+        } catch (RequestException $e) {
+            return new ApiError($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * Checks if the current access token is valid
+     * 
+     * @param array $access_token_data
+     * @param int $current_time
+     * @return bool
+     */
+    private function isTokenValid(array $access_token_data, int $current_time): bool
+    {
+        return isset($access_token_data['expires_at']) && $current_time < $access_token_data['expires_at'];
+    }
+
+    /**
+     * Stores encrypted authentication token data in the session.
+     *
+     * @param string $encrypted_access_token_data The encrypted token data to be stored.
+     */
+    private function storeEncryptedData(string $encrypted_access_token_data): void
+    {
+        $this->opencart_session->data['spectrocoin_auth_token'] = $encrypted_access_token_data;
+    }
+
+    /**
+     * Retrieves encrypted authentication token data from the session.
+     *
+     * @return string|null The encrypted token data if it exists in the session, null otherwise.
+     */
+    private function retrieveEncryptedData(): ?string
+    {
+        return $this->opencart_session->data['spectrocoin_auth_token'] ?? null;
+    }
 }

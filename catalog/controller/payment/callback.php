@@ -5,7 +5,7 @@ require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Http/OrderC
 require_once DIR_EXTENSION . 'spectrocoin/system/library/spectrocoin/Enum/OrderStatus.php';
 
 use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Http\OrderCallback;
-use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\OrderStatus\OrderStatus;
+use Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Enum\OrderStatus;
 
 use Exception;
 use InvalidArgumentException;

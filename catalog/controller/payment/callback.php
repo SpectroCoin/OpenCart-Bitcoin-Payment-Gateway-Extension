@@ -57,10 +57,16 @@ class Callback extends Controller
 
                 $order_id = explode('-', ($order_data['orderId']))[0];
                 $raw_status = $order_data['status'];
+                // MerchantOrderDTO reports the settlement side as
+                // receiveAmount / receiveCurrencyCode.
+                $receive_amount = $order_data['receiveAmount'] ?? null;
+                $receive_currency = $order_data['receiveCurrencyCode'] ?? null;
             } else {
                 $callback = $this->initCallbackFromPost();
                 $order_id = explode('-', ($callback->getOrderId()))[0];
                 $raw_status = $callback->getStatus();
+                $receive_amount = $callback->getReceiveAmount();
+                $receive_currency = $callback->getReceiveCurrency();
             }
 
             if (!$callback) {
@@ -77,6 +83,47 @@ class Callback extends Controller
                 $this->log->write('SpectroCoin Error: Order not found - ' . $order_id);
                 http_response_code(404);
                 exit;
+            }
+
+            // The order must actually have been placed through this extension, so
+            // a callback for one order cannot settle an unrelated one. The field
+            // holding the method differs between OpenCart releases, so only a
+            // positive mismatch is treated as an error.
+            $order_payment_code = '';
+            if (isset($order_info['payment_method']['code'])) {
+                $order_payment_code = (string) $order_info['payment_method']['code'];
+            } elseif (isset($order_info['payment_code'])) {
+                $order_payment_code = (string) $order_info['payment_code'];
+            }
+
+            if ($order_payment_code !== '' && strpos($order_payment_code, 'spectrocoin') === false) {
+                $this->log->write('SpectroCoin Error: Order was not paid with this payment method - ' . $order_id);
+                http_response_code(400);
+                exit;
+            }
+
+            // The order was created with receiveAmount / receiveCurrencyCode
+            // derived from the order total, so they must still match. A missing
+            // field means an unexpected payload shape rather than a mismatch, so
+            // it is logged and the comparison is skipped.
+            if ($receive_currency === null || $receive_amount === null) {
+                $this->log->write('SpectroCoin: callback carried no settlement amount to compare - ' . $order_id);
+            } else {
+                $expected_currency = (string) $order_info['currency_code'];
+                $expected_amount = round(((float) $order_info['total']) * $this->currency->getValue($expected_currency), 2);
+
+                if (strtoupper((string) $receive_currency) !== strtoupper($expected_currency)) {
+                    $this->log->write('SpectroCoin Error: callback currency does not match order - ' . $order_id);
+                    http_response_code(400);
+                    exit;
+                }
+                // Reported for now rather than rejected: it is not yet confirmed
+                // whether the settled amount is gross or net of fees, and
+                // rejecting a legitimate settlement would leave the order unpaid.
+                // Promote to a rejection once confirmed.
+                if ((float) $receive_amount + 0.00000001 < $expected_amount) {
+                    $this->log->write('SpectroCoin: callback amount ' . $receive_amount . ' does not cover order ' . $order_id . ' total ' . $expected_amount);
+                }
             }
 
             $statusEnum = OrderStatus::normalize($raw_status);

@@ -14,7 +14,7 @@
  * Standalone by design: the extension ships no PHPUnit setup, and an OpenCart
  * bootstrap is not needed to observe which methods write.
  *
- * Run:  php tests/CancelStateChangeTest.php
+ * Run:  php tests/check-cancel-state-change.php
  */
 
 // ---------------------------------------------------------------------------

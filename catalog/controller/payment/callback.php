@@ -137,6 +137,7 @@ class Callback extends Controller
                     $this->model_checkout_order->addHistory($order_id, 15);
                     break;
                 case OrderStatus::FAILED:
+                case OrderStatus::CANCELLED:
                     $this->model_checkout_order->addHistory($order_id, 7);
                     break;
                 case OrderStatus::EXPIRED:

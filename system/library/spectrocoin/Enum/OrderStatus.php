@@ -13,6 +13,7 @@ enum OrderStatus: string
     case PAID    = 'PAID';
     case FAILED  = 'FAILED';
     case EXPIRED = 'EXPIRED';
+    case CANCELLED = 'CANCELLED';
 
     /**
      * Map old numeric codes to new enum.
@@ -25,6 +26,7 @@ enum OrderStatus: string
             3 => self::PAID,
             4 => self::FAILED,
             5 => self::EXPIRED,
+            13 => self::CANCELLED,
             default => throw new \InvalidArgumentException("Unknown numeric status code: $code"),
         };
     }
@@ -43,7 +45,8 @@ enum OrderStatus: string
             'PENDING' => self::PENDING,
             'PAID'    => self::PAID,
             'FAILED'  => self::FAILED,
-            'EXPIRED' => self::EXPIRED,
+            'EXPIRED'   => self::EXPIRED,
+            'CANCELLED' => self::CANCELLED,
             default   => throw new \InvalidArgumentException("Unknown status string: $raw"),
         };
     }

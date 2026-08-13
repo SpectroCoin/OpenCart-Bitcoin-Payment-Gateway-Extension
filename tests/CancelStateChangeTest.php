@@ -169,6 +169,8 @@ namespace {
 
     define('HTTP_SERVER', 'http://shop.example/');
     define('HTTPS_SERVER', 'https://shop.example/');
+    // The enum refuses to load outside an OpenCart request.
+    define('DIR_APPLICATION', __DIR__ . '/../catalog/');
 
     $cancelFile = __DIR__ . '/../catalog/controller/payment/cancel.php';
     require_once $cancelFile;
@@ -280,6 +282,20 @@ namespace {
             'callback must still mark EXPIRED orders expired');
         $t->assertTrue(strpos($callbackSource, 'addHistory($order_id, 15)') !== false,
             'callback must still mark PAID orders processed');
+        $t->assertTrue(strpos($callbackSource, 'OrderStatus::CANCELLED') !== false,
+            'callback must handle the CANCELLED status the API sends when an order is cancelled');
+    });
+
+    $t->run('the status enum accepts every status the callback switch handles', function ($t) {
+        require_once __DIR__ . '/../system/library/spectrocoin/Enum/OrderStatus.php';
+        $enum = \Opencart\Catalog\Controller\Extension\Spectrocoin\Payment\Enum\OrderStatus::class;
+        foreach (['NEW', 'PENDING', 'PAID', 'FAILED', 'EXPIRED', 'CANCELLED'] as $status) {
+            $t->assertSame($status, $enum::normalize($status)->value,
+                "normalize() must accept the {$status} status");
+        }
+        // Legacy numeric form, as sent by old merchant projects.
+        $t->assertSame('CANCELLED', $enum::normalize(13)->value,
+            'normalize() must map legacy code 13 to CANCELLED');
     });
 
     exit($t->summary());

@@ -71,6 +71,7 @@ jobs:
           zip -r spectrocoin.ocmod.zip . -x \
             .git\* \
             .github\* \
+            tests\* \
             README.txt \
             README.md \
             changelog.md \

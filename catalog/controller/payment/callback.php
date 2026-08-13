@@ -127,6 +127,14 @@ class Callback extends Controller
             }
 
             $statusEnum = OrderStatus::normalize($raw_status);
+
+            if ($statusEnum->isInformational()) {
+                $this->log->write('SpectroCoin: order ' . $order_id . ' reported ' . $statusEnum->value . '; no status change applied.');
+                http_response_code(200);
+                echo '*ok*';
+                exit;
+            }
+
             switch ($statusEnum) {
                 case OrderStatus::NEW:
                     break;
@@ -137,6 +145,9 @@ class Callback extends Controller
                     $this->model_checkout_order->addHistory($order_id, 15);
                     break;
                 case OrderStatus::FAILED:
+                case OrderStatus::CANCELLED:
+                case OrderStatus::REJECTED:
+                case OrderStatus::INVALID_PAYMENT:
                     $this->model_checkout_order->addHistory($order_id, 7);
                     break;
                 case OrderStatus::EXPIRED:

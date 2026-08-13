@@ -6,48 +6,22 @@ use Opencart\System\Engine\Controller;
 
 class Cancel extends Controller
 {
+    /**
+     * Landing page for the payer after a failed or abandoned payment.
+     *
+     * Presentation only. Order status is owned exclusively by the callback
+     * controller, which proves the request came from SpectroCoin — the JSON
+     * path re-fetches the authoritative status from the API, and the legacy
+     * POST path verifies the payload signature. A payer-facing redirect target
+     * carries no such proof and is reachable by anyone, so it must never write
+     * order history.
+     *
+     * FAILED and EXPIRED both arrive on that authenticated channel and are
+     * already handled there, so nothing is lost by not cancelling here.
+     */
     public function index()
     {
-        $this->load->model('checkout/order');
-
-        $order_id = $this->getOrderId();
-
-        if ($order_id !== null) {
-            $order = $this->model_checkout_order->getOrder($order_id);
-            if ($order) {
-                $this->model_checkout_order->addHistory($order_id, 7); // 7 - Canceled
-            } else {
-                $this->log->write('SpectroCoin Error: Invalid Order ID.');
-            }
-        } else {
-            $this->log->write('SpectroCoin Error: Order ID is not available.');
-        }
-
         $this->loadFailurePage();
-    }
-
-    /**
-     * Retrieves the order ID from the session or request.
-     *
-     * @return int|null The order ID if found, or null otherwise.
-     */
-    private function getOrderId(): ?int
-    {
-        if (isset($this->session->data['order_id'])) {
-            return (int)$this->session->data['order_id'];
-        }
-
-        if (isset($this->request->get['order_id'])) {
-            return (int)$this->request->get['order_id'];
-        }
-
-        $this->load->model('account/order');
-        $orders = $this->model_account_order->getOrders();
-        if (!empty($orders)) {
-            return (int)$orders[0]['order_id'];
-        }
-
-        return null;
     }
 
     /**

@@ -71,7 +71,7 @@ echo "SpectroCoin OpenCart — plugin identification header\n\n";
 
 $t->run('the client declares its platform and version', function ($t) use ($source) {
     $t->assertSame('OpenCart', constant_in($source, 'PLUGIN_PLATFORM'), 'PLUGIN_PLATFORM');
-    $t->assertSame('1.1.5', constant_in($source, 'PLUGIN_VERSION'), 'PLUGIN_VERSION');
+    $t->assertSame('1.1.6', constant_in($source, 'PLUGIN_VERSION'), 'PLUGIN_VERSION');
 });
 
 $t->run('the header is wired into the HTTP client', function ($t) use ($source) {

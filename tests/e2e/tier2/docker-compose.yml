@@ -1,0 +1,59 @@
+# Tier 2: a real OpenCart, and a stand-in SpectroCoin API that answers as
+# spectrocoin.com inside this network.
+#
+# That network alias is the point of the design: the extension reaches the stub
+# through its own shipped Config URLs, over real TLS, with no test-only edit to
+# the code under test.
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: opencart
+    healthcheck:
+      # Asserts the DATABASE exists, not merely that the server answers.
+      test: ["CMD-SHELL", "mariadb -uroot -proot -e 'USE opencart' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  spectrocoin:
+    build:
+      context: ./stub
+    networks:
+      default:
+        aliases:
+          - spectrocoin.com
+    volumes:
+      - ./.certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/__test/requests"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  opencart:
+    build:
+      context: .
+      args:
+        OC_VERSION: 4.1.0.4
+    depends_on:
+      db:
+        condition: service_healthy
+      spectrocoin:
+        condition: service_healthy
+    networks:
+      default:
+        # The extension rejects a callbackUrl whose host has no dot, and that
+        # URL is built from the store URL - so it cannot be "localhost".
+        aliases:
+          - shop.test
+    volumes:
+      - ./.certs:/certs:ro
+    ports:
+      - "8088:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost/install/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40

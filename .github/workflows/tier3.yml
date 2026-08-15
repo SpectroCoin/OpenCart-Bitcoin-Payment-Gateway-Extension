@@ -1,0 +1,40 @@
+name: Checkout journey
+
+# Walks a real shopper through a real OpenCart checkout: catalogue -> cart ->
+# checkout -> pick SpectroCoin -> confirm -> land on the SpectroCoin payment
+# page.
+#
+# This is the layer tiers 1 and 2 cannot reach. Tier 2 drives the extension's
+# own confirm() and every callback status directly, so it proves the gateway
+# works but not that a shopper can ever reach it - and OpenCart 4's checkout
+# is a single AJAX-driven page gated step by step, so "is it offered" is a
+# genuinely different question from "does the extension function".
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  tier3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run the checkout journey
+        run: ./tests/e2e/tier3/tier3.sh
+
+      - name: Screenshots of any failing step
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tier3-screenshots
+          path: tests/e2e/tier3/artifacts/
+          if-no-files-found: ignore
+
+      - name: Container logs on failure
+        if: failure()
+        run: cd tests/e2e/tier3 && docker compose logs --tail=150 || true

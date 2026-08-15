@@ -1,0 +1,71 @@
+# Tier 3: a real shopper journey in a real browser.
+#
+# Tiers 1 and 2 never load a browser: tier 1 proves the extension installs,
+# tier 2 drives confirm() and the callback contract directly. Neither can say
+# whether a shopper actually sees SpectroCoin at checkout. This one walks the
+# storefront: catalogue -> cart -> checkout -> pick SpectroCoin -> confirm ->
+# land on the SpectroCoin payment page.
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: opencart
+    healthcheck:
+      # Asserts the DATABASE exists, not merely that the server answers.
+      test: ["CMD-SHELL", "mariadb -uroot -proot -e 'USE opencart' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  spectrocoin:
+    build:
+      context: ./stub
+    networks:
+      default:
+        aliases:
+          - spectrocoin.com
+    volumes:
+      - ./.certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/__test/requests"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  opencart:
+    build:
+      context: .
+      args:
+        OC_VERSION: 4.1.0.4
+    depends_on:
+      db:
+        condition: service_healthy
+      spectrocoin:
+        condition: service_healthy
+    networks:
+      default:
+        # The extension rejects a callbackUrl whose host has no dot, and that
+        # URL is built from the store URL - so it cannot be "localhost".
+        aliases:
+          - shop.test
+    volumes:
+      - ./.certs:/certs:ro
+    ports:
+      - "8095:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost/install/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  # Carries its own browsers; nothing is downloaded at run time.
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.50.0-noble
+    depends_on:
+      opencart:
+        condition: service_healthy
+    volumes:
+      - ./:/work
+    working_dir: /work
+    entrypoint: ["tail", "-f", "/dev/null"]

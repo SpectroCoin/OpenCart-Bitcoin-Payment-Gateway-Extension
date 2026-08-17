@@ -1,3 +1,9 @@
+# Pinned so concurrent runs in sibling plugin repositories do not share
+# one Compose project. Without this the name defaults to the directory
+# basename - "tier3" in every repository - and an unrelated "docker compose
+# down -v" tears down this stack mid-run.
+name: opencart-spectrocoin-tier3
+
 # Tier 3: a real shopper journey in a real browser.
 #
 # Tiers 1 and 2 never load a browser: tier 1 proves the extension installs,
